@@ -1,5 +1,6 @@
 # Odrive cansimple interface
 
+
 See also original odrive docs:
 
 * [can guide](https://docs.odriverobotics.com/v/0.5.6/can-guide.html)
@@ -21,6 +22,7 @@ output:
 
 
 ---------------------------------------
+generated from dbc file by `scripts/gen_dbc_docs.py`
 
 --8<-- "scripts/odrive-cansimple-0.5.6.md"
 
