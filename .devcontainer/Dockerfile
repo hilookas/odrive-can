@@ -26,7 +26,11 @@ RUN apt-get install -y \
     tree \
     git \
     make \
-    wget
+    wget \
+    libusb-1.0-0 \
+    net-tools \
+    iproute2 \
+    can-utils
 
 # cleanup
 RUN rm -rf /var/lib/apt/lists/*
