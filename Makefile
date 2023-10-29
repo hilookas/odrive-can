@@ -1,4 +1,4 @@
-.PHONY: install-dev, clean, container, list, test, uml
+.PHONY: install_pkg, clean, container, list, test, uml, serve_docs
 
 SHELL := /bin/bash
 
@@ -16,6 +16,10 @@ clean:
 	rm -rf src/*.egg-info dist venv public public docs/uml
 	docker container prune -f
 
+install_pkg:
+	@echo "Installing package..."
+	pip install .
+
 
 test:
 	pylint -E src
@@ -23,7 +27,7 @@ test:
 	coverage run -m pytest && coverage report -m
 
 
-uml:
+uml: install_pkg
 	# generage uml files
 	mkdir -p docs/uml/odrive_can
 	pyreverse src/odrive_can -o png -d docs/uml/odrive_can
@@ -32,3 +36,6 @@ public: uml
 	# build html documentation
 	mkdocs build -d public
 
+serve_docs: uml
+	# serve html documentation
+	mkdocs serve -a 0.0.0.0:8000
