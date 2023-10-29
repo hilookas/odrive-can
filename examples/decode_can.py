@@ -10,10 +10,14 @@ import odrive_can
 
 # pylint: disable=abstract-class-instantiated
 
+TIMEOUT = 0.1
 
-def receive_and_decode(bus, dbc):
+
+def receive_and_decode(bus: can.Bus, dbc):
     while True:
-        message = bus.recv()
+        message = bus.recv(TIMEOUT)
+        if message is None:
+            raise TimeoutError("Timeout occurred, no message.")
         try:
             # Attempt to decode the message using the DBC file
             decoded_message = dbc.decode_message(message.arbitration_id, message.data)
@@ -34,6 +38,8 @@ def main():
         receive_and_decode(bus, dbc)
     except KeyboardInterrupt:
         print("Stopped")
+    except TimeoutError as error:
+        print(error)
     finally:
         bus.shutdown()
 
