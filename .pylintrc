@@ -1,0 +1,7 @@
+[MASTER]
+jobs=2 #number of processes to use
+
+disable=
+    line-too-long,
+    missing-function-docstring,
+    missing-module-docstring,

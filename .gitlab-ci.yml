@@ -1,0 +1,39 @@
+image: sjev/python-ci
+
+before_script:
+  - python --version
+  - cat /build_date.txt
+  - pip install .
+
+stages:
+  - test_stage
+  - package_stage
+
+pytest:
+  stage: test_stage
+  script:
+    - pylint -E src
+    - mypy src
+    - pytest -v
+
+pages:
+  stage: package_stage
+  script:
+    - make public
+  artifacts:
+    paths:
+      - public
+  only:
+    changes:
+      - docs/**/*
+
+package:
+  stage: package_stage
+  script:
+    - pip install build twine
+    - python -m build
+    - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
+  rules:
+    - if: $CI_COMMIT_TAG
+
+

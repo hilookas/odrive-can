@@ -1,0 +1,8 @@
+autoflake
+black
+bump2version
+coverage
+mypy
+pre-commit
+pylint
+pytest

@@ -1,0 +1,25 @@
+{
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#096733",
+    "titleBar.inactiveBackground": "#096733"
+  },
+
+  "python.testing.pytestArgs": ["tests"],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "python.linting.flake8Enabled": false,
+  "python.linting.flake8Args": ["--max-line-length=88"],
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
+  "python.linting.mypyEnabled": true,
+  "python.formatting.provider": "black",
+  "yaml.customTags": [
+    "tag:yaml.org,2002:python/name:pymdownx.superfences.fence_code_format"
+  ],
+  "fileHeaderComment.parameter": {
+    "*": {
+      "company": "ROX Automation",
+      "pybang": "#!/usr/bin/env python3"
+    }
+  }
+}
