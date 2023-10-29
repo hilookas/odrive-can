@@ -8,11 +8,7 @@
   "initializeCommand": "mkdir -p /var/tmp/container-extensions", // executed on HOST system
 
 
-  // use Dockerfile
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": "."
-  },
+  "image": "registry.gitlab.com/roxautomation/components/odrive-can",
   //"runArgs": ["--privileged"], // uncomment if you need access to hardware devices
 
   "mounts": [

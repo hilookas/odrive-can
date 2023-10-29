@@ -18,6 +18,7 @@ theme:
 nav:
   - Introduction: "index.md"
   - can_tools.md
+  - development.md
   - api_docs.md
   - changelog.md
 
