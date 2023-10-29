@@ -8,6 +8,7 @@ before_script:
 stages:
   - test_stage
   - package_stage
+  - docker_images
 
 pytest:
   stage: test_stage
@@ -40,3 +41,20 @@ package:
     - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
   rules:
     - if: $CI_COMMIT_TAG
+
+# build ui docker container
+build_images:
+  stage: docker_images
+  image: docker:latest
+
+  services:
+    - docker:dind
+
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    # ---- main image
+    - cp -r src/web-ui/site docker/ui
+    - docker build -t $CI_REGISTRY_IMAGE  ./docker
+    - docker push $CI_REGISTRY_IMAGE
+  when: manual
