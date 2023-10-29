@@ -1,5 +1,3 @@
-image: sjev/python-ci
-
 before_script:
   - python --version
   - cat /build_date.txt
@@ -11,6 +9,7 @@ stages:
   - docker_images
 
 pytest:
+  image: $CI_REGISTRY_IMAGE
   stage: test_stage
   script:
     - pylint -E src
@@ -24,6 +23,7 @@ pytest:
         - src/**/*
 
 pages:
+  image: sjev/mkdocs
   stage: package_stage
   script:
     - make public
