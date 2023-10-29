@@ -1,5 +1,9 @@
 # Odrive cansimple interface
 
+See also original odrive docs:
+
+* [can guide](https://docs.odriverobotics.com/v/0.5.6/can-guide.html)
+* [cansimple protocol](https://docs.odriverobotics.com/v/0.5.6/can-protocol.html#can-protocol)
 
 
 ```python
