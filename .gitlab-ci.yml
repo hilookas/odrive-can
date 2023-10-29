@@ -54,7 +54,6 @@ build_images:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     # ---- main image
-    - cp -r src/web-ui/site docker/ui
     - docker build -t $CI_REGISTRY_IMAGE  ./docker
     - docker push $CI_REGISTRY_IMAGE
   when: manual
