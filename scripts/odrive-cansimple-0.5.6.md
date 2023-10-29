@@ -5,257 +5,257 @@
 - Length: 8 bytes
 - Sender: ['ODrive_Axis0']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Axis_Error | 0 | 32 | 1 | 0 | None | None |  | Master | 0: NONE, 1: INVALID_STATE, 64: MOTOR_FAILED, 128: SENSORLESS_ESTIMATOR_FAILED, 256: ENCODER_FAILED, 512: CONTROLLER_FAILED, 2048: WATCHDOG_TIMER_EXPIRED, 4096: MIN_ENDSTOP_PRESSED, 8192: MAX_ENDSTOP_PRESSED, 16384: ESTOP_REQUESTED, 131072: HOMING_WITHOUT_ENDSTOP, 262144: OVER_TEMP, 524288: UNKNOWN_POSITION |
-| Axis_State | 32 | 8 | 1 | 0 | None | None |  | Master | 0: UNDEFINED, 1: IDLE, 2: STARTUP_SEQUENCE, 3: FULL_CALIBRATION_SEQUENCE, 4: MOTOR_CALIBRATION, 6: ENCODER_INDEX_SEARCH, 7: ENCODER_OFFSET_CALIBRATION, 8: CLOSED_LOOP_CONTROL, 9: LOCKIN_SPIN, 10: ENCODER_DIR_FIND, 11: HOMING, 12: ENCODER_HALL_POLARITY_CALIBRATION, 13: ENCODER_HALL_PHASE_CALIBRATION |
-| Motor_Error_Flag | 40 | 1 | 1 | 0 | None | None |  | Master |  |
-| Encoder_Error_Flag | 48 | 1 | 1 | 0 | None | None |  | Master |  |
-| Controller_Error_Flag | 56 | 1 | 1 | 0 | None | None |  | Master |  |
-| Trajectory_Done_Flag | 63 | 1 | 1 | 0 | None | None |  | Master |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Axis_Error | 0 | 32 |    | Master | 0: NONE, 1: INVALID_STATE, 64: MOTOR_FAILED, 128: SENSORLESS_ESTIMATOR_FAILED, 256: ENCODER_FAILED, 512: CONTROLLER_FAILED, 2048: WATCHDOG_TIMER_EXPIRED, 4096: MIN_ENDSTOP_PRESSED, 8192: MAX_ENDSTOP_PRESSED, 16384: ESTOP_REQUESTED, 131072: HOMING_WITHOUT_ENDSTOP, 262144: OVER_TEMP, 524288: UNKNOWN_POSITION |
+| Axis_State | 32 | 8 |    | Master | 0: UNDEFINED, 1: IDLE, 2: STARTUP_SEQUENCE, 3: FULL_CALIBRATION_SEQUENCE, 4: MOTOR_CALIBRATION, 6: ENCODER_INDEX_SEARCH, 7: ENCODER_OFFSET_CALIBRATION, 8: CLOSED_LOOP_CONTROL, 9: LOCKIN_SPIN, 10: ENCODER_DIR_FIND, 11: HOMING, 12: ENCODER_HALL_POLARITY_CALIBRATION, 13: ENCODER_HALL_PHASE_CALIBRATION |
+| Motor_Error_Flag | 40 | 1 |    | Master |  |
+| Encoder_Error_Flag | 48 | 1 |    | Master |  |
+| Controller_Error_Flag | 56 | 1 |    | Master |  |
+| Trajectory_Done_Flag | 63 | 1 |    | Master |  |
 
 ### ID: 3 - Axis0_Get_Motor_Error
 - Name: Axis0_Get_Motor_Error
 - Length: 8 bytes
 - Sender: ['ODrive_Axis0']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Motor_Error | 0 | 32 | 1 | 0 | None | None |  | Master | 0: NONE, 1: PHASE_RESISTANCE_OUT_OF_RANGE, 2: PHASE_INDUCTANCE_OUT_OF_RANGE, 8: DRV_FAULT, 16: CONTROL_DEADLINE_MISSED, 128: MODULATION_MAGNITUDE, 1024: CURRENT_SENSE_SATURATION, 4096: CURRENT_LIMIT_VIOLATION, 65536: MODULATION_IS_NAN, 131072: MOTOR_THERMISTOR_OVER_TEMP, 262144: FET_THERMISTOR_OVER_TEMP, 524288: TIMER_UPDATE_MISSED, 1048576: CURRENT_MEASUREMENT_UNAVAILABLE, 2097152: CONTROLLER_FAILED, 4194304: I_BUS_OUT_OF_RANGE, 8388608: BRAKE_RESISTOR_DISARMED, 16777216: SYSTEM_LEVEL, 33554432: BAD_TIMING, 67108864: UNKNOWN_PHASE_ESTIMATE, 134217728: UNKNOWN_PHASE_VEL, 268435456: UNKNOWN_TORQUE, 536870912: UNKNOWN_CURRENT_COMMAND, 1073741824: UNKNOWN_CURRENT_MEASUREMENT, 2147483648: UNKNOWN_VBUS_VOLTAGE, 4294967296: UNKNOWN_VOLTAGE_COMMAND, 8589934592: UNKNOWN_GAINS, 17179869184: CONTROLLER_INITIALIZING, 34359738368: UNBALANCED_PHASES |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Motor_Error | 0 | 32 |    | Master | 0: NONE, 1: PHASE_RESISTANCE_OUT_OF_RANGE, 2: PHASE_INDUCTANCE_OUT_OF_RANGE, 8: DRV_FAULT, 16: CONTROL_DEADLINE_MISSED, 128: MODULATION_MAGNITUDE, 1024: CURRENT_SENSE_SATURATION, 4096: CURRENT_LIMIT_VIOLATION, 65536: MODULATION_IS_NAN, 131072: MOTOR_THERMISTOR_OVER_TEMP, 262144: FET_THERMISTOR_OVER_TEMP, 524288: TIMER_UPDATE_MISSED, 1048576: CURRENT_MEASUREMENT_UNAVAILABLE, 2097152: CONTROLLER_FAILED, 4194304: I_BUS_OUT_OF_RANGE, 8388608: BRAKE_RESISTOR_DISARMED, 16777216: SYSTEM_LEVEL, 33554432: BAD_TIMING, 67108864: UNKNOWN_PHASE_ESTIMATE, 134217728: UNKNOWN_PHASE_VEL, 268435456: UNKNOWN_TORQUE, 536870912: UNKNOWN_CURRENT_COMMAND, 1073741824: UNKNOWN_CURRENT_MEASUREMENT, 2147483648: UNKNOWN_VBUS_VOLTAGE, 4294967296: UNKNOWN_VOLTAGE_COMMAND, 8589934592: UNKNOWN_GAINS, 17179869184: CONTROLLER_INITIALIZING, 34359738368: UNBALANCED_PHASES |
 
 ### ID: 4 - Axis0_Get_Encoder_Error
 - Name: Axis0_Get_Encoder_Error
 - Length: 8 bytes
 - Sender: ['ODrive_Axis0']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Encoder_Error | 0 | 32 | 1 | 0 | None | None |  | Master | 0: NONE, 1: UNSTABLE_GAIN, 2: CPR_POLEPAIRS_MISMATCH, 4: NO_RESPONSE, 8: UNSUPPORTED_ENCODER_MODE, 16: ILLEGAL_HALL_STATE, 32: INDEX_NOT_FOUND_YET, 64: ABS_SPI_TIMEOUT, 128: ABS_SPI_COM_FAIL, 256: ABS_SPI_NOT_READY, 512: HALL_NOT_CALIBRATED_YET |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Encoder_Error | 0 | 32 |    | Master | 0: NONE, 1: UNSTABLE_GAIN, 2: CPR_POLEPAIRS_MISMATCH, 4: NO_RESPONSE, 8: UNSUPPORTED_ENCODER_MODE, 16: ILLEGAL_HALL_STATE, 32: INDEX_NOT_FOUND_YET, 64: ABS_SPI_TIMEOUT, 128: ABS_SPI_COM_FAIL, 256: ABS_SPI_NOT_READY, 512: HALL_NOT_CALIBRATED_YET |
 
 ### ID: 5 - Axis0_Get_Sensorless_Error
 - Name: Axis0_Get_Sensorless_Error
 - Length: 8 bytes
 - Sender: ['ODrive_Axis0']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Sensorless_Error | 0 | 32 | 1 | 0 | None | None |  | Master | 0: NONE, 1: UNSTABLE_GAIN, 2: UNKNOWN_CURRENT_MEASUREMENT |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Sensorless_Error | 0 | 32 |    | Master | 0: NONE, 1: UNSTABLE_GAIN, 2: UNKNOWN_CURRENT_MEASUREMENT |
 
 ### ID: 6 - Axis0_Set_Axis_Node_ID
 - Name: Axis0_Set_Axis_Node_ID
 - Length: 8 bytes
 - Sender: ['Master']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Axis_Node_ID | 0 | 32 | 1 | 0 | None | None |  | ODrive_Axis0 |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Axis_Node_ID | 0 | 32 |    | ODrive_Axis0 |  |
 
 ### ID: 7 - Axis0_Set_Axis_State
 - Name: Axis0_Set_Axis_State
 - Length: 8 bytes
 - Sender: ['Master']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Axis_Requested_State | 0 | 32 | 1 | 0 | None | None |  | ODrive_Axis0 | 0: UNDEFINED, 1: IDLE, 2: STARTUP_SEQUENCE, 3: FULL_CALIBRATION_SEQUENCE, 4: MOTOR_CALIBRATION, 6: ENCODER_INDEX_SEARCH, 7: ENCODER_OFFSET_CALIBRATION, 8: CLOSED_LOOP_CONTROL, 9: LOCKIN_SPIN, 10: ENCODER_DIR_FIND, 11: HOMING, 12: ENCODER_HALL_POLARITY_CALIBRATION, 13: ENCODER_HALL_PHASE_CALIBRATION |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Axis_Requested_State | 0 | 32 |    | ODrive_Axis0 | 0: UNDEFINED, 1: IDLE, 2: STARTUP_SEQUENCE, 3: FULL_CALIBRATION_SEQUENCE, 4: MOTOR_CALIBRATION, 6: ENCODER_INDEX_SEARCH, 7: ENCODER_OFFSET_CALIBRATION, 8: CLOSED_LOOP_CONTROL, 9: LOCKIN_SPIN, 10: ENCODER_DIR_FIND, 11: HOMING, 12: ENCODER_HALL_POLARITY_CALIBRATION, 13: ENCODER_HALL_PHASE_CALIBRATION |
 
 ### ID: 9 - Axis0_Get_Encoder_Estimates
 - Name: Axis0_Get_Encoder_Estimates
 - Length: 8 bytes
 - Sender: ['ODrive_Axis0']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Pos_Estimate | 0 | 32 | 1 | 0 | None | None | rev | Master |  |
-| Vel_Estimate | 32 | 32 | 1 | 0 | None | None | rev/s | Master |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Pos_Estimate | 0 | 32 |   rev | Master |  |
+| Vel_Estimate | 32 | 32 |   rev/s | Master |  |
 
 ### ID: 10 - Axis0_Get_Encoder_Count
 - Name: Axis0_Get_Encoder_Count
 - Length: 8 bytes
 - Sender: ['ODrive_Axis0']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Shadow_Count | 0 | 32 | 1 | 0 | None | None | counts | Master |  |
-| Count_in_CPR | 32 | 32 | 1 | 0 | None | None | counts | Master |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Shadow_Count | 0 | 32 |   counts | Master |  |
+| Count_in_CPR | 32 | 32 |   counts | Master |  |
 
 ### ID: 11 - Axis0_Set_Controller_Mode
 - Name: Axis0_Set_Controller_Mode
 - Length: 8 bytes
 - Sender: ['Master']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Control_Mode | 0 | 32 | 1 | 0 | None | None |  | ODrive_Axis0 | 0: VOLTAGE_CONTROL, 1: TORQUE_CONTROL, 2: VELOCITY_CONTROL, 3: POSITION_CONTROL |
-| Input_Mode | 32 | 32 | 1 | 0 | None | None |  | ODrive_Axis0 | 0: INACTIVE, 1: PASSTHROUGH, 2: VEL_RAMP, 3: POS_FILTER, 4: MIX_CHANNELS, 5: TRAP_TRAJ, 6: TORQUE_RAMP, 7: MIRROR, 8: TUNING |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Control_Mode | 0 | 32 |    | ODrive_Axis0 | 0: VOLTAGE_CONTROL, 1: TORQUE_CONTROL, 2: VELOCITY_CONTROL, 3: POSITION_CONTROL |
+| Input_Mode | 32 | 32 |    | ODrive_Axis0 | 0: INACTIVE, 1: PASSTHROUGH, 2: VEL_RAMP, 3: POS_FILTER, 4: MIX_CHANNELS, 5: TRAP_TRAJ, 6: TORQUE_RAMP, 7: MIRROR, 8: TUNING |
 
 ### ID: 12 - Axis0_Set_Input_Pos
 - Name: Axis0_Set_Input_Pos
 - Length: 8 bytes
 - Sender: ['Master']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Input_Pos | 0 | 32 | 1 | 0 | None | None | rev | ODrive_Axis0 |  |
-| Vel_FF | 32 | 16 | 0.001 | 0 | None | None | rev/s | ODrive_Axis0 |  |
-| Torque_FF | 48 | 16 | 0.001 | 0 | None | None | Nm | ODrive_Axis0 |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Input_Pos | 0 | 32 |   rev | ODrive_Axis0 |  |
+| Vel_FF | 32 | 16 |   rev/s | ODrive_Axis0 |  |
+| Torque_FF | 48 | 16 |   Nm | ODrive_Axis0 |  |
 
 ### ID: 13 - Axis0_Set_Input_Vel
 - Name: Axis0_Set_Input_Vel
 - Length: 8 bytes
 - Sender: ['Master']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Input_Vel | 0 | 32 | 1 | 0 | None | None | rev | ODrive_Axis0 |  |
-| Input_Torque_FF | 32 | 32 | 1 | 0 | None | None | rev/s | ODrive_Axis0 |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Input_Vel | 0 | 32 |   rev | ODrive_Axis0 |  |
+| Input_Torque_FF | 32 | 32 |   rev/s | ODrive_Axis0 |  |
 
 ### ID: 14 - Axis0_Set_Input_Torque
 - Name: Axis0_Set_Input_Torque
 - Length: 8 bytes
 - Sender: ['Master']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Input_Torque | 0 | 32 | 1 | 0 | None | None | Nm | ODrive_Axis0 |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Input_Torque | 0 | 32 |   Nm | ODrive_Axis0 |  |
 
 ### ID: 15 - Axis0_Set_Limits
 - Name: Axis0_Set_Limits
 - Length: 8 bytes
 - Sender: ['Master']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Velocity_Limit | 0 | 32 | 1 | 0 | None | None | rev/s | ODrive_Axis0 |  |
-| Current_Limit | 32 | 32 | 1 | 0 | None | None | A | ODrive_Axis0 |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Velocity_Limit | 0 | 32 |   rev/s | ODrive_Axis0 |  |
+| Current_Limit | 32 | 32 |   A | ODrive_Axis0 |  |
 
 ### ID: 16 - Axis0_Start_Anticogging
 - Name: Axis0_Start_Anticogging
 - Length: 0 bytes
 - Sender: ['Master']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
 
 ### ID: 17 - Axis0_Set_Traj_Vel_Limit
 - Name: Axis0_Set_Traj_Vel_Limit
 - Length: 8 bytes
 - Sender: ['Master']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Traj_Vel_Limit | 0 | 32 | 1 | 0 | None | None | rev/s | ODrive_Axis0 |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Traj_Vel_Limit | 0 | 32 |   rev/s | ODrive_Axis0 |  |
 
 ### ID: 18 - Axis0_Set_Traj_Accel_Limits
 - Name: Axis0_Set_Traj_Accel_Limits
 - Length: 8 bytes
 - Sender: ['Master']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Traj_Accel_Limit | 0 | 32 | 1 | 0 | None | None | rev/s^2 | ODrive_Axis0 |  |
-| Traj_Decel_Limit | 32 | 32 | 1 | 0 | None | None | rev/s^2 | ODrive_Axis0 |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Traj_Accel_Limit | 0 | 32 |   rev/s^2 | ODrive_Axis0 |  |
+| Traj_Decel_Limit | 32 | 32 |   rev/s^2 | ODrive_Axis0 |  |
 
 ### ID: 19 - Axis0_Set_Traj_Inertia
 - Name: Axis0_Set_Traj_Inertia
 - Length: 8 bytes
 - Sender: ['Master']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Traj_Inertia | 0 | 32 | 1 | 0 | None | None | Nm / (rev/s^2) | ODrive_Axis0 |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Traj_Inertia | 0 | 32 |   Nm / (rev/s^2) | ODrive_Axis0 |  |
 
 ### ID: 20 - Axis0_Get_Iq
 - Name: Axis0_Get_Iq
 - Length: 8 bytes
 - Sender: ['ODrive_Axis0']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Iq_Setpoint | 0 | 32 | 1 | 0 | None | None | A | Master |  |
-| Iq_Measured | 32 | 32 | 1 | 0 | None | None | A | Master |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Iq_Setpoint | 0 | 32 |   A | Master |  |
+| Iq_Measured | 32 | 32 |   A | Master |  |
 
 ### ID: 21 - Axis0_Get_Sensorless_Estimates
 - Name: Axis0_Get_Sensorless_Estimates
 - Length: 8 bytes
 - Sender: ['ODrive_Axis0']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Sensorless_Pos_Estimate | 0 | 32 | 1 | 0 | None | None | rev | Master |  |
-| Sensorless_Vel_Estimate | 32 | 32 | 1 | 0 | None | None | rev/s | Master |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Sensorless_Pos_Estimate | 0 | 32 |   rev | Master |  |
+| Sensorless_Vel_Estimate | 32 | 32 |   rev/s | Master |  |
 
 ### ID: 22 - Axis0_Reboot
 - Name: Axis0_Reboot
 - Length: 0 bytes
 - Sender: ['Master']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
 
 ### ID: 23 - Axis0_Get_Bus_Voltage_Current
 - Name: Axis0_Get_Bus_Voltage_Current
 - Length: 8 bytes
 - Sender: ['ODrive_Axis0']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Bus_Voltage | 0 | 32 | 1 | 0 | None | None | V | Master |  |
-| Bus_Current | 32 | 32 | 1 | 0 | None | None | A | Master |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Bus_Voltage | 0 | 32 |   V | Master |  |
+| Bus_Current | 32 | 32 |   A | Master |  |
 
 ### ID: 24 - Axis0_Clear_Errors
 - Name: Axis0_Clear_Errors
 - Length: 0 bytes
 - Sender: ['Master']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
 
 ### ID: 25 - Axis0_Set_Linear_Count
 - Name: Axis0_Set_Linear_Count
 - Length: 8 bytes
 - Sender: ['Master']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Position | 0 | 32 | 1 | 0 | None | None | counts | ODrive_Axis0 |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Position | 0 | 32 |   counts | ODrive_Axis0 |  |
 
 ### ID: 26 - Axis0_Set_Pos_Gain
 - Name: Axis0_Set_Pos_Gain
 - Length: 8 bytes
 - Sender: ['Master']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Pos_Gain | 0 | 32 | 1 | 0 | None | None | (rev/s) / rev | ODrive_Axis0 |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Pos_Gain | 0 | 32 |   (rev/s) / rev | ODrive_Axis0 |  |
 
 ### ID: 27 - Axis0_Set_Vel_Gains
 - Name: Axis0_Set_Vel_Gains
 - Length: 8 bytes
 - Sender: ['Master']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Vel_Gain | 0 | 32 | 1 | 0 | None | None | Nm / (rev/s) | ODrive_Axis0 |  |
-| Vel_Integrator_Gain | 32 | 32 | 1 | 0 | None | None | (Nm / (rev/s)) / s | ODrive_Axis0 |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Vel_Gain | 0 | 32 |   Nm / (rev/s) | ODrive_Axis0 |  |
+| Vel_Integrator_Gain | 32 | 32 |   (Nm / (rev/s)) / s | ODrive_Axis0 |  |
 
 ### ID: 28 - Axis0_Get_ADC_Voltage
 - Name: Axis0_Get_ADC_Voltage
 - Length: 8 bytes
 - Sender: ['ODrive_Axis0']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| ADC_Voltage | 0 | 32 | 1 | 0 | None | None | V | Master |  |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| ADC_Voltage | 0 | 32 |   V | Master |  |
 
 ### ID: 29 - Axis0_Get_Controller_Error
 - Name: Axis0_Get_Controller_Error
 - Length: 8 bytes
 - Sender: ['ODrive_Axis0']
 
-| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |
-|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|
-| Controller_Error | 0 | 32 | 1 | 0 | None | None |  | Master | 0: NONE, 1: OVERSPEED, 2: INVALID_INPUT_MODE, 4: UNSTABLE_GAIN, 8: INVALID_MIRROR_AXIS, 16: INVALID_LOAD_ENCODER, 32: INVALID_ESTIMATE, 64: INVALID_CIRCULAR_RANGE, 128: SPINOUT_DETECTED |
+| Signal Name | Start Bit | Length | Unit | Receiver | Choices |
+|-------------|-----------|--------|------|----------|---------|
+| Controller_Error | 0 | 32 |    | Master | 0: NONE, 1: OVERSPEED, 2: INVALID_INPUT_MODE, 4: UNSTABLE_GAIN, 8: INVALID_MIRROR_AXIS, 16: INVALID_LOAD_ENCODER, 32: INVALID_ESTIMATE, 64: INVALID_CIRCULAR_RANGE, 128: SPINOUT_DETECTED |
 
 ### ID: 33 - Axis1_Heartbeat
 - Name: Axis1_Heartbeat
