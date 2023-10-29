@@ -1,10 +1,11 @@
 site_name: odrive-can
 repo_url: https://gitlab.com/roxautomation/components/odrive-can
+# edit_uri: edit/main/docs/
 
 theme:
   name: material
-  features:
-    - content.action.edit
+  # features:
+  #   - content.action.edit
   palette:
     - scheme: default
       toggle:
@@ -19,6 +20,7 @@ nav:
   - Introduction: "index.md"
   - can_tools.md
   - examples.md
+  - can_interface.md
   - development.md
   - api_docs.md
   - changelog.md
