@@ -1,5 +1,9 @@
 # Examples
 
+Code examples below are located in `examples` directory.
+
+
+
 ## Talk to odrive
 
 ```python

@@ -10,7 +10,7 @@ import odrive_can
 
 # pylint: disable=abstract-class-instantiated
 
-TIMEOUT = 0.1
+TIMEOUT = 1.0
 
 
 def receive_and_decode(bus: can.Bus, dbc):
