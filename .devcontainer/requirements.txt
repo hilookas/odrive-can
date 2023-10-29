@@ -1,8 +1,14 @@
 autoflake
 black
 bump2version
+cantools
 coverage
+invoke
 mypy
+odrive
+orjson
 pre-commit
+pydantic
 pylint
 pytest
+python-can

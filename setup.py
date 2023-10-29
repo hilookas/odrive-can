@@ -26,7 +26,7 @@ def get_version(rel_path):
 
 
 # please keep this lean and mean. Add dev requirements to .devcontainer/requirments.txt
-requirements = ["click"]
+requirements = ["click", "cantools", "python-can"]
 
 test_requirements = [
     "pytest>=3",
@@ -54,9 +54,5 @@ setup(
     url="",
     version=get_version("src/odrive_can/__init__.py"),
     # zip_safe=False,
-    entry_points={
-        "console_scripts": [
-            "odrive_can=odrive_can.cli:cli"
-        ]
-    },
+    entry_points={"console_scripts": ["odrive_can=odrive_can.cli:cli"]},
 )
