@@ -1,6 +1,6 @@
 {
   "template": "https://gitlab.com/sjev/python-template",
-  "commit": "fdffe8cc4b1e7c55214714665f39c87bd0c73c7a",
+  "commit": "48354627bbc5cdad87e4d6fdf13d6d4e7b1e16c5",
   "checkout": null,
   "context": {
     "cookiecutter": {
