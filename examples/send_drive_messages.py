@@ -10,7 +10,9 @@ import can
 from odrive_can import get_dbc
 
 # pylint: disable=abstract-class-instantiated
-BUS = can.interface.Bus(channel="can0", bustype="socketcan", receive_own_messages=False)
+BUS = can.interface.Bus(
+    channel="vcan0", bustype="socketcan", receive_own_messages=False
+)
 DB = get_dbc()  # Load the DBC file
 
 IGNORED_MESSAGES = [9]  # List of message IDs to ignore

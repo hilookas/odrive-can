@@ -7,6 +7,7 @@
 
 import asyncio
 import logging
+from typing import Optional
 
 import can
 import coloredlogs
@@ -22,16 +23,62 @@ class ODriveCANMock:
     def __init__(
         self, axis_id: int = 0, channel: str = "vcan0", bustype: str = "socketcan"
     ):
+        self.log = logging.getLogger("odrive.mock")
         self.dbc = get_dbc()
         self.axis_id = axis_id
 
         self.bus: can.interface.Bus = can.interface.Bus(
             channel=channel, bustype=bustype
         )
+        self.notifier = can.Notifier(self.bus, [self.message_handler])
+
+    def message_handler(self, msg: can.Message):
+        """handle received message"""
+
+        if msg.is_remote_frame:
+            db_msg = self.dbc.get_message_by_frame_id(msg.arbitration_id)
+            self.log.info(f"Request: {db_msg.name}")
+            # echo RTR messages back with data
+            self.send_message(db_msg.name)
+            return
+
+        try:
+            # Attempt to decode the message using the DBC file
+            decoded_message = self.dbc.decode_message(msg.arbitration_id, msg.data)
+            self.log.info(f"Decoded: {decoded_message}")
+        except KeyError:
+            # If the message ID is not in the DBC file, print the raw message
+            self.log.info(f"Raw: {msg}")
+
+    def send_message(
+        self, msg_name: str, msg_dict: Optional[dict] = None, rtr: bool = False
+    ):
+        """send message by name. If no msg_dict is provided, use zeros"""
+        msg = self.dbc.get_message_by_name(msg_name)
+        if rtr:
+            # For RTR messages, don't specify the data field
+            msg = can.Message(
+                arbitration_id=msg.frame_id,
+                is_extended_id=False,
+                is_remote_frame=True,
+            )
+        else:
+            full_msg_dict = {signal.name: 0 for signal in msg.signals}
+            if msg_dict is not None:
+                full_msg_dict.update(msg_dict)
+
+            data = msg.encode(full_msg_dict)
+            msg = can.Message(
+                arbitration_id=msg.frame_id,
+                data=data,
+                is_extended_id=False,
+            )
+
+        self.bus.send(msg)
 
     async def heartbeat_loop(self, delay: float = 1.0):
         """send heartbeat message"""
-        logging.info("Starting heartbeat loop")
+        self.log.info("Starting heartbeat loop")
 
         # Fetch the "Axis0_Heartbeat" message from the DBC database
         heartbeat_msg = self.dbc.get_message_by_name(f"Axis{self.axis_id}_Heartbeat")
@@ -59,7 +106,7 @@ class ODriveCANMock:
 
     async def encoder_loop(self, delay: float = 0.5):
         """send encoder message"""
-        logging.info("Starting encoder loop")
+        self.log.info("Starting encoder loop")
         position = 0.0
         msg = self.dbc.get_message_by_name(f"Axis{self.axis_id}_Get_Encoder_Estimates")
 
@@ -82,19 +129,21 @@ class ODriveCANMock:
         asyncio.run(self.main())
 
     def __del__(self):
+        """destructor"""
+        self.notifier.stop()
         self.bus.shutdown()
 
 
 def main():
     logging.info("Starting ODrive CAN mock")
 
-    mock = ODriveCANMock()
-    mock.start()
+    try:
+        mock = ODriveCANMock()
+        mock.start()
+    except KeyboardInterrupt:
+        logging.info("KeyboardInterrupt")
 
 
 if __name__ == "__main__":
     coloredlogs.install(level="INFO", fmt=LOG_FORMAT, datefmt=TIME_FORMAT)
-    try:
-        main()
-    except KeyboardInterrupt:
-        print("Stopped")
+    main()

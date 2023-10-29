@@ -5,3 +5,4 @@ disable=
     line-too-long,
     missing-function-docstring,
     missing-module-docstring,
+    logging-fstring-interpolation,

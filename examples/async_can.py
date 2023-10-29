@@ -25,7 +25,7 @@ async def send_messages():
         print(f"Sent: {message}")
         await asyncio.sleep(0.1)  # Delay to simulate processing
 
-    raise Exception("done sending")
+    raise StopIteration("done sending")
 
 
 # Coroutine to receive messages
@@ -38,9 +38,10 @@ async def receive_messages(reader):
 async def main():
     # Start the sending and receiving coroutines
 
+    reader = can.AsyncBufferedReader()
+    notifier = can.Notifier(BUS, [print_message, reader])
+
     try:
-        reader = can.AsyncBufferedReader()
-        notifier = can.Notifier(BUS, [print_message, reader])
         await asyncio.gather(send_messages(), receive_messages(reader))
     except Exception as e:
         print(f"Exception: {e}")
