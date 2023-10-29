@@ -2,11 +2,11 @@
 
 ## Packages
 
-![](../uml/odrive_can/packages.png)
+![](uml/odrive_can/packages.png)
 
 ## Classes
 
-![](../uml/odrive_can/classes.png)
+![](uml/odrive_can/classes.png)
 
 
 
