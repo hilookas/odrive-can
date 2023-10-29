@@ -18,6 +18,6 @@ output:
 
 ---------------------------------------
 
---8<-- "tools/odrive-cansimple-0.5.6.md"
+--8<-- "scripts/odrive-cansimple-0.5.6.md"
 
 
