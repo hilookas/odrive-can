@@ -1,6 +1,10 @@
 __version__ = "0.0.1"
 
 
+LOG_FORMAT = "%(asctime)s [%(name)s] - %(message)s"
+TIME_FORMAT = "%H:%M:%S.%f"
+
+
 # pylint: disable=import-outside-toplevel
 def get_dbc(name: str = "odrive-cansimple-0.5.6"):
     """get the cantools database"""

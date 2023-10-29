@@ -2,6 +2,7 @@ autoflake
 black
 bump2version
 cantools
+coloredlogs
 coverage
 invoke
 mypy
