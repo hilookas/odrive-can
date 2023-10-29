@@ -1,4 +1,4 @@
-.PHONY: install-dev, clean, container, list, test
+.PHONY: install-dev, clean, container, list, test, uml
 
 SHELL := /bin/bash
 
@@ -23,12 +23,12 @@ test:
 	coverage run -m pytest && coverage report -m
 
 
-docs/uml:
+uml:
 	# generage uml files
 	mkdir -p docs/uml/odrive_can
 	pyreverse src/odrive_can -o png -d docs/uml/odrive_can
 
-public: docs/uml
+public: uml
 	# build html documentation
 	mkdocs build -d public
 
