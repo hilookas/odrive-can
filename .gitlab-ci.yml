@@ -4,11 +4,13 @@ before_script:
   - python --version
   - cat /build_date.txt
   - pip install .
+  - echo $CI_COMMIT_REF_NAME
+  - echo $CI_COMMIT_TAG
 
 stages:
   - test_stage
   - docs_stage
-  - package_stage
+  - upload_stage
   - docker_images
 
 pytest:
@@ -39,8 +41,8 @@ pages:
         - docs/**/*
         - "mkdocs.yml"
 
-package:
-  stage: package_stage
+upload:
+  stage: upload_stage
   script:
     - pip install build twine
     - python -m build
