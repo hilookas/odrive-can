@@ -10,9 +10,10 @@ import logging
 from typing import Optional
 
 import can
-import coloredlogs
+import coloredlogs  # type: ignore
 
-from odrive_can import LOG_FORMAT, TIME_FORMAT, get_dbc
+from odrive_can import LOG_FORMAT, TIME_FORMAT, get_dbc, get_axis_id
+
 
 # pylint: disable=abstract-class-instantiated
 
@@ -35,7 +36,12 @@ class ODriveCANMock:
     def message_handler(self, msg: can.Message):
         """handle received message"""
 
+        if get_axis_id(msg) != self.axis_id:
+            # Ignore messages that aren't for this axis
+            return
+
         if msg.is_remote_frame:
+            # RTR messages are requests for data, they don't have a data payload
             db_msg = self.dbc.get_message_by_frame_id(msg.arbitration_id)
             self.log.info(f"Request: {db_msg.name}")
             # echo RTR messages back with data

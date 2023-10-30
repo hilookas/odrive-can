@@ -7,7 +7,7 @@
 from typing import Optional
 from time import sleep
 import can
-from odrive_can import get_dbc
+from odrive_can import get_dbc, get_axis_id
 
 # pylint: disable=abstract-class-instantiated
 BUS = can.interface.Bus(
@@ -15,22 +15,20 @@ BUS = can.interface.Bus(
 )
 DB = get_dbc()  # Load the DBC file
 
-IGNORED_MESSAGES = [9]  # List of message IDs to ignore
-
 
 # Callback function to process received messages
 def print_message(msg):
     """print message, if not ignored"""
-    if msg.arbitration_id in IGNORED_MESSAGES:
-        return
+
+    axis_id = get_axis_id(msg)
 
     try:
         # Attempt to decode the message using the DBC file
         decoded_message = DB.decode_message(msg.arbitration_id, msg.data)
-        print(f"Decoded: {decoded_message}")
+        print(f"Decoded {axis_id=}: {decoded_message}")
     except KeyError:
         # If the message ID is not in the DBC file, print the raw message
-        print(f"Raw: {msg}")
+        print(f"Raw {axis_id=}: {msg}")
 
 
 def send_message(msg_name: str, msg_dict: Optional[dict] = None, rtr: bool = False):
@@ -57,18 +55,20 @@ def send_message(msg_name: str, msg_dict: Optional[dict] = None, rtr: bool = Fal
 
 
 def send_messages():
-    for msg_name in [
-        "Axis0_Get_Bus_Voltage_Current",
-        "Axis0_Get_Motor_Error",
-        "Axis0_Get_Encoder_Error",
-        "Axis0_Get_Encoder_Estimates",
-        "Axis0_Get_Iq",
-        "Axis0_Get_Sensorless_Estimates",
-        "Axis0_Clear_Errors",
-    ]:
-        print(f"Sending {msg_name}")
-        send_message(msg_name, rtr=True)
-        sleep(0.1)
+    for axis_id in [0, 1]:
+        for cmd_name in [
+            "Get_Bus_Voltage_Current",
+            "Get_Motor_Error",
+            "Get_Encoder_Error",
+            "Get_Encoder_Estimates",
+            "Get_Iq",
+            "Get_Sensorless_Estimates",
+            "Clear_Errors",
+        ]:
+            msg_name = f"Axis{axis_id}_{cmd_name}"
+            print(f"Sending {msg_name}")
+            send_message(msg_name, rtr=True)
+            sleep(0.1)
 
 
 def main():

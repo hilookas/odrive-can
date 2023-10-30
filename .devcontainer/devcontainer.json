@@ -5,7 +5,7 @@
   // If you are using Windows, you can either:
   // 1. comment out "mounts" section and use default extensions directory
   // 2. use WSL2
-  "initializeCommand": "mkdir -p /var/tmp/container-extensions", // executed on HOST system
+  "initializeCommand": "./init_host.sh", // executed on HOST system
 
   "image": "registry.gitlab.com/roxautomation/components/odrive-can",
   "runArgs": ["--network", "host"],

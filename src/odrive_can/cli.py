@@ -7,7 +7,7 @@ import functools
 import logging
 
 import click
-import coloredlogs
+import coloredlogs  # type: ignore
 
 from odrive_can import LOG_FORMAT, TIME_FORMAT
 
