@@ -1,4 +1,4 @@
-__version__ = "0.3.5"
+__version__ = "0.3.6"
 
 
 LOG_FORMAT = "%(asctime)s [%(name)s] - %(message)s"
