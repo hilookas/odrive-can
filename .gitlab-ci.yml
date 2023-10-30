@@ -1,3 +1,5 @@
+image: $CI_REGISTRY_IMAGE
+
 before_script:
   - python --version
   - cat /build_date.txt
@@ -5,11 +7,11 @@ before_script:
 
 stages:
   - test_stage
+  - docs_stage
   - package_stage
   - docker_images
 
 pytest:
-  image: $CI_REGISTRY_IMAGE
   stage: test_stage
   script:
     - pylint -E src
@@ -24,7 +26,7 @@ pytest:
 
 pages:
   image: sjev/mkdocs
-  stage: package_stage
+  stage: docs_stage
   script:
     - make public
   artifacts:
