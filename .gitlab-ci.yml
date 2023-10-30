@@ -21,9 +21,9 @@ pytest:
   artifacts:
     when: on_success
     expire_in: 5 days
-  rules:
-    - changes:
-        - src/**/*
+  # rules:
+  #   - changes:
+  #       - src/**/*
 
 pages:
   image: sjev/mkdocs
