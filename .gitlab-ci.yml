@@ -4,8 +4,7 @@ before_script:
   - python --version
   - cat /build_date.txt
   - pip install .
-  - echo $CI_COMMIT_BRANCH
-  - echo $CI_COMMIT_TAG
+  - export
 
 stages:
   - test_stage
