@@ -14,7 +14,7 @@ from odrive_can import LOG_FORMAT, TIME_FORMAT
 log = logging.getLogger()
 coloredlogs.install(level="INFO", fmt=LOG_FORMAT, datefmt=TIME_FORMAT)
 
-# pylint: disable=import-outside-toplevel
+# pylint: disable=import-outside-toplevel, unused-argument
 
 # ------------------ helpers
 
@@ -48,13 +48,26 @@ def info():
 
 
 @cli.command()
+@click.option("--axis-id", default=0, help="ODrive axis ID")
+@click.option("--channel", default="vcan0", help="CAN channel")
 @click.option("--debug", is_flag=True, help="Turn on debugging")
 @common_cli
-def mock(debug):
+def mock(axis_id, channel, debug):
     """Mock ODrive CAN interface"""
     from .mock import main
 
-    main()
+    main(axis_id=axis_id, channel=channel)
+
+
+@cli.command()
+@click.option("--channel", default="vcan0", help="CAN channel")
+@click.option("--debug", is_flag=True, help="Turn on debugging")
+@common_cli
+def inspect(channel, debug):
+    """Inspect and decode ODrive CAN messages"""
+    from .inspector import main
+
+    main(channel=channel)
 
 
 if __name__ == "__main__":

@@ -25,6 +25,7 @@ class ODriveCANMock:
         self, axis_id: int = 0, channel: str = "vcan0", bustype: str = "socketcan"
     ):
         self.log = logging.getLogger("odrive.mock")
+        self.log.info(f"Starting mock {axis_id=} , {channel=} , {bustype=}")
         self.dbc = get_dbc()
         self.axis_id = axis_id
 
@@ -140,11 +141,9 @@ class ODriveCANMock:
         self.bus.shutdown()
 
 
-def main():
-    logging.info("Starting ODrive CAN mock")
-
+def main(axis_id: int = 0, channel: str = "vcan0"):
     try:
-        mock = ODriveCANMock()
+        mock = ODriveCANMock(axis_id, channel)
         mock.start()
     except KeyboardInterrupt:
         logging.info("KeyboardInterrupt")

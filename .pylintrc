@@ -6,3 +6,4 @@ disable=
     missing-function-docstring,
     missing-module-docstring,
     logging-fstring-interpolation,
+    abstract-class-instantiated,
