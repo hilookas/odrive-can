@@ -27,10 +27,10 @@ def dbc_to_markdown(db, markdown_file_path, name):
             if message.frame_id <= 29:
                 # Write a table header for signals
                 md_file.write(
-                    "| Signal Name | Start Bit | Length | Unit | Receiver | Choices |\n"
+                    "| Signal Name | Start Bit | Length | Factor | Offset | Min Value | Max Value | Unit | Receiver | Choices |\n"
                 )
                 md_file.write(
-                    "|-------------|-----------|--------|------|----------|---------|\n"
+                    "|-------------|-----------|--------|--------|--------|-----------|-----------|------|----------|---------|\n"
                 )
 
                 # Iterate over signals
@@ -41,7 +41,7 @@ def dbc_to_markdown(db, markdown_file_path, name):
                         else ""
                     )
                     md_file.write(
-                        f"| {signal.name} | {signal.start} | {signal.length} |   {signal.unit or ''} | {', '.join(signal.receivers)} | {choices_str} |\n"
+                        f"| {signal.name} | {signal.start} | {signal.length} | {signal.scale} | {signal.offset} | {signal.minimum} | {signal.maximum} | {signal.unit or ''} | {', '.join(signal.receivers)} | {choices_str} |\n"
                     )
 
                 # Add a newline after each message
