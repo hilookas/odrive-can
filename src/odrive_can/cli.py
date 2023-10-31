@@ -4,7 +4,11 @@ odrive_can CLI
 """
 
 import functools
+import json
 import logging
+import os
+import subprocess
+from pathlib import Path
 
 import click
 import coloredlogs  # type: ignore
@@ -60,7 +64,7 @@ def mock(axis_id, channel, debug):
 
 
 @cli.command()
-@click.option("--channel", default="vcan0", help="CAN channel")
+@click.argument("channel")
 @click.option("--debug", is_flag=True, help="Turn on debugging")
 @common_cli
 def inspect(channel, debug):
@@ -68,6 +72,60 @@ def inspect(channel, debug):
     from .inspector import main
 
     main(channel=channel)
+
+
+@cli.command()
+@click.option(
+    "--output-file",
+    default="odrive_config.json",
+    help='The name of the output file (default: "odrive_config.json")',
+)
+def backup(output_file):
+    """Backup config to config folder"""
+    tmp_path = Path("/tmp")
+    odrive_files = tmp_path.glob("odrive*")
+
+    # 1. Remove all /tmp/odrive* files
+    for file in odrive_files:
+        file.unlink()
+        print(f"Removed: {file}")
+
+    # 2. Run `odrivetool backup-config`
+    try:
+        result = subprocess.run(
+            "odrivetool backup-config",
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            timeout=5,
+        )
+        if result.returncode != 0:
+            print("Failed to run 'odrivetool backup-config'")
+            print(result.stderr.decode())
+            return
+    except subprocess.TimeoutExpired:
+        print("Failed to run 'odrivetool backup-config'")
+        print("Timeout expired")
+        return
+
+    # 3. Find the generated `odrive-config-*.json` file and read it
+    config_files = list(tmp_path.glob("odrive-config-*.json"))
+    if not config_files:
+        print("No config file found")
+        return
+
+    config_file = max(config_files, key=os.path.getctime)  # Get the latest file
+    data = config_file.read_text()
+
+    # 4. Save parsed data using json, with human readable formatting
+    parsed_data = json.loads(data)
+
+    # Save the formatted data to the 'config' directory
+    dest = Path(output_file)
+    with dest.open("w", encoding="utf8") as f:
+        json.dump(parsed_data, f, indent=2)
+    print(f"Formatted config saved to {dest}")
 
 
 if __name__ == "__main__":
