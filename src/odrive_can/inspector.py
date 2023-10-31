@@ -28,8 +28,11 @@ def receive_and_decode(bus: can.Bus, dbc):
 
         try:
             # Attempt to decode the message using the DBC file
-            decoded_message = dbc.decode_message(msg.arbitration_id, msg.data)
-            print(f"Axis{axis_id} Message: {decoded_message}")
+            db_msg = dbc.get_message_by_frame_id(msg.arbitration_id)
+            decoded_message = db_msg.decode(
+                msg.data
+            )  # Remove msg.arbitration_id as it's not needed for decoding
+            print(f"{db_msg.name}:{decoded_message}")
         except KeyError:
             # If the message ID is not in the DBC file, print the raw message
             print(f"Axis{axis_id} Raw Message: {msg}")
