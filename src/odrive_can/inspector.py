@@ -12,6 +12,7 @@ TIMEOUT = 1.0
 
 
 def receive_and_decode(bus: can.Bus, dbc):
+    idx = 0  # message index
     while True:
         msg = bus.recv(TIMEOUT)
 
@@ -19,6 +20,8 @@ def receive_and_decode(bus: can.Bus, dbc):
             raise TimeoutError("Timeout occurred, no message.")
 
         axis_id = odrive_can.get_axis_id(msg)
+
+        print(f"[{idx}] ", end="")
 
         if msg.is_remote_frame:
             # RTR messages are requests for data, they don't have a data payload
@@ -36,6 +39,8 @@ def receive_and_decode(bus: can.Bus, dbc):
         except KeyError:
             # If the message ID is not in the DBC file, print the raw message
             print(f"Axis{axis_id} Raw Message: {msg}")
+
+        idx += 1
 
 
 def main(channel: str = "vcan0"):
