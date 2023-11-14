@@ -8,7 +8,7 @@
   "initializeCommand": "./init_host.sh", // executed on HOST system
 
   "image": "registry.gitlab.com/roxautomation/components/odrive-can",
-  "runArgs": ["--network", "host"],
+  "runArgs": ["--network", "host", "--privileged"],
 
   "mounts": [
     "source=/var/tmp/container-extensions,target=/home/dev/.vscode-server/extensions,type=bind,consistency=cached"
