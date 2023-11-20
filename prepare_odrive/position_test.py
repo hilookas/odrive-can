@@ -26,11 +26,11 @@ ax.requested_state = enums.AxisState.CLOSED_LOOP_CONTROL
 check_error(drv)
 
 ax.controller.config.control_mode = enums.ControlMode.POSITION_CONTROL
-ax.controller.config.vel_ramp_rate = 20  # this does not do anything
-ax.motor.config.current_lim = 2.0
+ax.controller.config.vel_ramp_rate = 1  # this does not do anything
+ax.motor.config.current_lim = 1.5
 
 # position control
-ax.controller.config.pos_gain = 5.0
+ax.controller.config.pos_gain = 3.0
 
 
 async def feedback_loop():
