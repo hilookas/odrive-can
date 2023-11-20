@@ -63,9 +63,11 @@ def follow_curve(setpoints, delay=0.02):
 
 try:
     print("---------------------Smooth profile---------------------")
-    for i in range(2):
+    i = 0
+    while True:
         print(f"run {i}")
         follow_curve(SMOOTH_PROFILE)
+        i += 1
 
 
 except KeyboardInterrupt:
