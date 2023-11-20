@@ -63,4 +63,5 @@ try:
         follow_curve(setpoints)
 except KeyboardInterrupt:
     drv.axis0.controller.input_vel = 0
+    drv.axis0.requested_state = enums.AxisState.IDLE
     print("interrupted")
