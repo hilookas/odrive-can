@@ -5,15 +5,12 @@
  Copyright (c) 2023 ROX Automation - Jev Kuznetsov
 """
 import time
+
 import odrive  # type: ignore
 import odrive.enums as enums  # type: ignore
+from utils import check_error
 
 from odrive_can.tools import UDP_Client
-
-
-class OdriveError(Exception):
-    """custom exception"""
-
 
 # send data to plotjuggler
 udp = UDP_Client()
@@ -28,37 +25,25 @@ drv.axis0.requested_state = enums.AxisState.CLOSED_LOOP_CONTROL
 drv.axis0.config.enable_watchdog = False
 
 
-def check_error(drv):
-    """check if there are any errors"""
-
-    names = [
-        "error",
-        "motor.error",
-        "encoder.error",
-        "controller.error",
-        "sensorless_estimator.error",
-    ]
-
-    for name in names:
-        var = getattr(drv.axis0, name)
-        if var > 0:
-            raise OdriveError(f"{name} : {var} ")
-
-
 # set positiion to zero
 drv.axis0.encoder.set_linear_count(0)
 
 
-setpoints = list(range(0, 50)) + 20 * [50] + list(range(50, 0, -1))
+setpoints = (
+    list(range(0, 50))
+    + 20 * [50]
+    + list(range(50, -50, -1))
+    + 20 * [-50]
+    + list(range(-50, 0))
+)
 
 
-def follow_curve(setpoints, delay=0.1):
+def follow_curve(setpoints, delay=0.02):
     """follow curve consisting of velocity setpoints"""
 
-    # check for errors
-    check_error(drv)
-
     for setpoint in setpoints:
+        check_error(drv)
+
         print(f"{setpoint=}")
         drv.axis0.controller.input_vel = setpoint
 
@@ -77,4 +62,5 @@ try:
     while True:
         follow_curve(setpoints)
 except KeyboardInterrupt:
+    drv.axis0.controller.input_vel = 0
     print("interrupted")
