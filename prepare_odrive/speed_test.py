@@ -60,38 +60,13 @@ def follow_curve(setpoints, delay=0.02):
         time.sleep(delay)
 
 
-def square_profile(top_val: float = 50, duration: float = 2.0):
-    """follow a square profile"""
-
-    setpoints = [top_val, -top_val, 0.0]
-
-    for setpoint in setpoints:
-        t0 = time.time()
-        check_error(drv)
-
-        drv.axis0.controller.input_vel = setpoint
-
-        while time.time() - t0 < duration:
-            data = {
-                "ts": time.time(),
-                "sp": setpoint,
-                "vel": drv.axis0.encoder.vel_estimate,
-                "pos": drv.axis0.encoder.pos_estimate,
-            }
-            udp.send(data)
-            time.sleep(0.02)
-
-
 try:
     print("---------------------Smooth profile---------------------")
     for i in range(2):
         print(f"run {i}")
         follow_curve(SMOOTH_PROFILE)
 
-    print("---------------------Square profile---------------------")
-    for i in range(4):
-        print(f"run {i}")
-        square_profile()
+
 except KeyboardInterrupt:
     print("interrupted")
 finally:
