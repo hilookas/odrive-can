@@ -7,3 +7,4 @@ disable=
     missing-module-docstring,
     logging-fstring-interpolation,
     abstract-class-instantiated,
+    invalid-name,
