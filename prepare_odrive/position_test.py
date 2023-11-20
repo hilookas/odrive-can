@@ -16,21 +16,24 @@ DURATION = 5
 SETPOINT = 20
 
 drv = odrive.find_any()
+ax = drv.axis0
 
 print(f"Found ODrive {drv.serial_number}")
 
 drv.clear_errors()
-drv.axis0.requested_state = enums.AxisState.CLOSED_LOOP_CONTROL
+ax.requested_state = enums.AxisState.CLOSED_LOOP_CONTROL
 
 check_error(drv)
 
-drv.axis0.controller.config.control_mode = enums.ControlMode.POSITION_CONTROL
-drv.axis0.controller.config.vel_ramp_rate = 20  # this does not do anything
-drv.axis0.motor.config.current_lim = 1.0
+ax.controller.config.control_mode = enums.ControlMode.POSITION_CONTROL
+ax.controller.config.vel_ramp_rate = 20  # this does not do anything
+ax.motor.config.current_lim = 2.0
+
+# position control
+ax.controller.config.pos_gain = 5.0
 
 
 async def feedback_loop():
-    ax = drv.axis0
     udp = UDP_Client()
 
     while True:
@@ -49,9 +52,9 @@ async def feedback_loop():
 
 async def setpoint_loop():
     while True:
-        drv.axis0.controller.input_pos = SETPOINT
+        ax.controller.input_pos = SETPOINT
         await asyncio.sleep(DURATION)
-        drv.axis0.controller.input_pos = -SETPOINT
+        ax.controller.input_pos = -SETPOINT
         await asyncio.sleep(DURATION)
 
 
@@ -64,5 +67,5 @@ try:
 except KeyboardInterrupt:
     pass
 finally:
-    drv.axis0.controller.input_vel = 0
-    drv.axis0.requested_state = enums.AxisState.IDLE
+    ax.controller.input_vel = 0
+    ax.requested_state = enums.AxisState.IDLE
