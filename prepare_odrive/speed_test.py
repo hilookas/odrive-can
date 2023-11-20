@@ -24,12 +24,15 @@ drv.clear_errors()
 drv.axis0.requested_state = enums.AxisState.CLOSED_LOOP_CONTROL
 drv.axis0.config.enable_watchdog = False
 
+# limit acceleration
+drv.axis0.controller.config.vel_ramp_rate = 10
+
 
 # set positiion to zero
 drv.axis0.encoder.set_linear_count(0)
 
 
-setpoints = (
+SMOOTH_PROFILE = (
     list(range(0, 50))
     + 20 * [50]
     + list(range(50, -50, -1))
@@ -44,7 +47,6 @@ def follow_curve(setpoints, delay=0.02):
     for setpoint in setpoints:
         check_error(drv)
 
-        print(f"{setpoint=}")
         drv.axis0.controller.input_vel = setpoint
 
         data = {
@@ -58,10 +60,40 @@ def follow_curve(setpoints, delay=0.02):
         time.sleep(delay)
 
 
+def square_profile(top_val: float = 50, duration: float = 2.0):
+    """follow a square profile"""
+
+    setpoints = [top_val, -top_val, 0.0]
+
+    for setpoint in setpoints:
+        t0 = time.time()
+        check_error(drv)
+
+        drv.axis0.controller.input_vel = setpoint
+
+        while time.time() - t0 < duration:
+            data = {
+                "ts": time.time(),
+                "sp": setpoint,
+                "vel": drv.axis0.encoder.vel_estimate,
+                "pos": drv.axis0.encoder.pos_estimate,
+            }
+            udp.send(data)
+            time.sleep(0.02)
+
+
 try:
-    while True:
-        follow_curve(setpoints)
+    print("---------------------Smooth profile---------------------")
+    for i in range(2):
+        print(f"run {i}")
+        follow_curve(SMOOTH_PROFILE)
+
+    print("---------------------Square profile---------------------")
+    for i in range(4):
+        print(f"run {i}")
+        square_profile()
 except KeyboardInterrupt:
+    print("interrupted")
+finally:
     drv.axis0.controller.input_vel = 0
     drv.axis0.requested_state = enums.AxisState.IDLE
-    print("interrupted")
