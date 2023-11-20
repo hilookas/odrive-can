@@ -1,5 +1,5 @@
 # start with a ci image that already contains the tools to run CI, like mkdocs
-FROM python:3.11-slim-bullseye
+FROM python:3.12-slim-bullseye
 
 ARG USERNAME=dev
 ARG UID=1000
