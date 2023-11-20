@@ -39,3 +39,9 @@ public: uml
 serve_docs: uml
 	# serve html documentation
 	mkdocs serve -a 0.0.0.0:8000
+
+venv:
+	# create virtual environment
+	python3 -m venv venv
+	venv/bin/pip install -r docker/requirements.txt
+	venv/bin/pip install -e .
