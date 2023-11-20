@@ -21,6 +21,7 @@ drv = odrive.find_any()
 print(f"Found ODrive {drv.serial_number}")
 
 drv.clear_errors()
+drv.axis0.controller.config.control_mode = enums.ControlMode.VELOCITY_CONTROL
 drv.axis0.requested_state = enums.AxisState.CLOSED_LOOP_CONTROL
 drv.axis0.config.enable_watchdog = False
 
