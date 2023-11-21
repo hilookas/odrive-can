@@ -21,16 +21,20 @@ ax = drv.axis0
 print(f"Found ODrive {drv.serial_number}")
 
 drv.clear_errors()
-ax.requested_state = enums.AxisState.CLOSED_LOOP_CONTROL
 
 check_error(drv)
 
 ax.controller.config.control_mode = enums.ControlMode.POSITION_CONTROL
-ax.controller.config.vel_ramp_rate = 1  # this does not do anything
-ax.motor.config.current_lim = 1.5
+ax.controller.config.input_mode = enums.InputMode.POS_FILTER
+ax.requested_state = enums.AxisState.CLOSED_LOOP_CONTROL
+ax.controller.config.input_filter_bandwidth = 4.0
+ax.motor.config.current_lim = 5.0
 
 # position control
 ax.controller.config.pos_gain = 3.0
+
+# set positiion to zero
+ax.encoder.set_linear_count(0)
 
 
 async def feedback_loop():

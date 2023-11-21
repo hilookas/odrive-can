@@ -13,8 +13,8 @@ from utils import check_error
 from odrive_can.tools import UDP_Client
 
 
-RAMP_RATE = 10
-SETPOINT = 20
+RAMP_RATE = 200
+SETPOINT = 40
 
 drv = odrive.find_any()
 
@@ -25,10 +25,14 @@ drv.axis0.requested_state = enums.AxisState.CLOSED_LOOP_CONTROL
 
 check_error(drv)
 
-# limit acceleration
+# configure velocity control
+drv.axis0.controller.config.input_mode = enums.InputMode.VEL_RAMP
 drv.axis0.controller.config.control_mode = enums.ControlMode.VELOCITY_CONTROL
-drv.axis0.controller.config.vel_ramp_rate = RAMP_RATE  # this does not do anything
-drv.axis0.motor.config.current_lim = 2.0
+drv.axis0.controller.config.vel_ramp_rate = RAMP_RATE  # this only works with VEL_RAMP
+drv.axis0.controller.config.vel_limit = 150.0
+drv.axis0.motor.config.current_lim = 10.0
+
+# check correct setti
 
 
 async def feedback_loop():
@@ -53,7 +57,7 @@ async def setpoint_loop():
     while True:
         drv.axis0.controller.input_vel = SETPOINT
         await asyncio.sleep(2)
-        drv.axis0.controller.input_vel = 0
+        drv.axis0.controller.input_vel = -SETPOINT
         await asyncio.sleep(2)
 
 
