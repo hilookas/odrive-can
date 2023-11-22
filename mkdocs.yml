@@ -18,6 +18,7 @@ theme:
 
 nav:
   - Introduction: "index.md"
+  - rpi_config.md
   - can_tools.md
   - examples.md
   - can_interface.md
