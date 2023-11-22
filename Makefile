@@ -24,7 +24,7 @@ install_pkg:
 test:
 	pylint -E src
 	mypy src
-	coverage run -m pytest && coverage report -m
+	coverage run -m pytest tests && coverage report -m
 
 
 uml: install_pkg

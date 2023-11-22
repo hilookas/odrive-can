@@ -19,6 +19,6 @@ drv.axis1.config.can.node_id = 8
 drv.axis1.config.can.encoder_rate_ms = 0
 drv.axis1.config.can.heartbeat_rate_ms = 0
 
-drv.can.config.baud_rate = 250_000
+drv.can.config.baud_rate = 500000
 drv.save_configuration()
 drv.reboot()

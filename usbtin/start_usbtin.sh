@@ -10,7 +10,7 @@ sudo modprobe can
 sudo modprobe can-raw
 sudo modprobe slcan
 
-# Use the symlink for slcan_attach
-sudo slcan_attach -f -s5 -o /dev/usbtin
+# Use the symlink for slcan_attach, speed 500000 bps
+sudo slcan_attach -f -s6 -o /dev/usbtin
 sudo slcand -o -c -f /dev/usbtin slcan0
 sudo ifconfig slcan0 up

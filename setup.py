@@ -26,7 +26,7 @@ def get_version(rel_path):
 
 
 # please keep this lean and mean. Add dev requirements to .devcontainer/requirments.txt
-requirements = ["click", "cantools", "python-can", "coloredlogs", "odrive==0.6.7"]
+requirements = ["click", "cantools", "python-can", "coloredlogs"]
 
 test_requirements = [
     "pytest>=3",
