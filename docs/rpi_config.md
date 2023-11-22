@@ -2,8 +2,8 @@
 
 *Setup on a Raspberry Pi Machine for Waveshare 2-CH CAN HAT*
 
-
-installation scripts are found in `install` directory
+!!! note
+    installation scripts are found in `install` directory
 
 ## 1. Prepare system
 
