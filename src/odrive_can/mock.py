@@ -29,9 +29,7 @@ class ODriveCANMock:
         self.dbc = get_dbc()
         self.axis_id = axis_id
 
-        self.bus: can.interface.Bus = can.interface.Bus(
-            channel=channel, bustype=bustype
-        )
+        self.bus = can.interface.Bus(channel=channel, bustype=bustype)
         self.notifier = can.Notifier(self.bus, [self.message_handler])
 
     def message_handler(self, msg: can.Message):
@@ -81,7 +79,7 @@ class ODriveCANMock:
                 is_extended_id=False,
             )
 
-        self.bus.send(msg)
+        self.bus.send(msg)  # type: ignore
 
     async def heartbeat_loop(self, delay: float = 1.0):
         """send heartbeat message"""
