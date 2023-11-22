@@ -42,6 +42,6 @@ serve_docs: uml
 
 venv:
 	# create virtual environment
-	python3 -m venv venv
+	python3.12 -m venv venv
 	venv/bin/pip install -r docker/requirements.txt
 	venv/bin/pip install -e .
