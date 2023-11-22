@@ -54,6 +54,7 @@ class ODriveCAN:
 
         self._messages: dict[str, CanMsg] = {}  # latest message for each type
 
+    @property
     def is_alive(self) -> bool:
         """check if axis is alive"""
         if "Heartbeat" not in self._messages:
@@ -63,6 +64,27 @@ class ODriveCAN:
             return False
 
         return True
+
+    @property
+    def is_error(self) -> bool:
+        """check if axis is in error"""
+        if "Heartbeat" not in self._messages:
+            return True  # assume error if no heartbeat
+
+        msg = self._messages["Heartbeat"]
+
+        if msg.data["Axis_Error"] != "NONE":
+            return True
+
+        for field in [
+            "Motor_Error_Flag",
+            "Encoder_Error_Flag",
+            "Controller_Error_Flag",
+        ]:
+            if msg.data[field] != 0:
+                return True
+
+        return False
 
     def _message_handler(self, msg: can.Message):
         """handle received message"""
@@ -112,14 +134,6 @@ class ODriveCAN:
             )
 
         self._bus.send(msg)  # type: ignore
-
-    # async def main(self):
-    #     """main loop"""
-    #     await asyncio.gather(self.heartbeat_loop(), self.encoder_loop())
-
-    # def start(self):
-    #     """start the main loop"""
-    #     asyncio.run(self.main())
 
     def __del__(self):
         """destructor"""
