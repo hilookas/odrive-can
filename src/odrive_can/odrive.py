@@ -7,12 +7,10 @@
 
 
 # import asyncio
-from enum import Enum
 import logging
 from typing import Optional
 
 import can
-import cantools
 
 from odrive_can.timer import Timer
 from odrive_can import get_dbc, get_axis_id
