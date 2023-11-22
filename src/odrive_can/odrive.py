@@ -22,6 +22,14 @@ CUSTOM_TIMEOUTS = {"Heartbeat": 1.1}
 dbc = get_dbc()
 
 
+class DriveError(Exception):
+    """ODrive drive error"""
+
+
+class HeartbeatError(Exception):
+    """No heartbeat error"""
+
+
 class CanMsg:
     """class to manage CAN messages"""
 
@@ -54,27 +62,23 @@ class ODriveCAN:
 
         self._messages: dict[str, CanMsg] = {}  # latest message for each type
 
-    @property
-    def is_alive(self) -> bool:
-        """check if axis is alive"""
+    def check_alive(self):
+        """check if axis is alive, rasie an exception if not"""
         if "Heartbeat" not in self._messages:
-            return False
+            raise HeartbeatError("Error: No heartbeat message received.")
 
         if self._messages["Heartbeat"].is_expired():
-            return False
+            raise HeartbeatError("Error: Heartbeat message timeout.")
 
-        return True
-
-    @property
-    def is_error(self) -> bool:
-        """check if axis is in error"""
+    def check_errors(self):
+        """Check if axis is in error and raise an exception if so."""
         if "Heartbeat" not in self._messages:
-            return True  # assume error if no heartbeat
+            raise HeartbeatError("Error: No heartbeat message received.")
 
         msg = self._messages["Heartbeat"]
 
         if msg.data["Axis_Error"] != "NONE":
-            return True
+            raise DriveError(f"Axis Error: {msg.data['Axis_Error']}")
 
         for field in [
             "Motor_Error_Flag",
@@ -82,9 +86,7 @@ class ODriveCAN:
             "Controller_Error_Flag",
         ]:
             if msg.data[field] != 0:
-                return True
-
-        return False
+                raise DriveError(f"{field} Error Detected")
 
     def _message_handler(self, msg: can.Message):
         """handle received message"""

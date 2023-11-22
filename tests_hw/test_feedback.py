@@ -13,5 +13,5 @@ def test_interface_present():
 def test_heartbeat():
     drv = ODriveCAN(axis_id=1, channel=INTERFACE)
     sleep(1.5)
-    assert drv.is_alive
-    assert not drv.is_error
+    drv.check_alive()
+    drv.check_errors()
