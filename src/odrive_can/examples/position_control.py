@@ -5,19 +5,20 @@
  Copyright (c) 2023 ROX Automation - Jev Kuznetsov
 """
 
-import time
 import asyncio
 import logging
 from odrive_can.odrive import ODriveCAN
 from odrive_can.tools import UDP_Client
-
+from odrive_can.setpoints import sawtooth_generator
 
 SETTLE_TIME = 5.0  # settle time in [s]
+SETPOINT_DELAY = 0.1  # setpoint update delay in [s]
+ROC = 2.0  # rate of change of setpoint in [units/s]
 
 log = logging.getLogger("pos_ctl")
 udp = UDP_Client()
 
-setpoint: float = 20.0
+setpoint: float = 0.0
 
 
 def position_callback(data):
@@ -44,6 +45,9 @@ async def main_loop(drv: ODriveCAN):
     drv.set_axis_state("CLOSED_LOOP_CONTROL")
     await asyncio.sleep(0.5)  #  wait for heartbeat update
 
+    # set gain
+    drv.set_pos_gain(1.0)
+
     # reset encoder
     drv.set_linear_count(0)
 
@@ -53,15 +57,17 @@ async def main_loop(drv: ODriveCAN):
     drv.set_input_pos(setpoint)
     await asyncio.sleep(2)
 
+    generator = sawtooth_generator(roc=ROC, max_val=100.0)
+
     idx = 0
     try:
         while True:
             drv.check_errors()
-            log.info(f"Setting position setpoint to {setpoint}")
+            setpoint = next(generator)
             drv.set_input_pos(setpoint)
             idx += 1
-            await asyncio.sleep(SETTLE_TIME)
-            setpoint = -setpoint
+            await asyncio.sleep(SETPOINT_DELAY)
+
     except KeyboardInterrupt:
         log.info("Stopping")
     finally:
