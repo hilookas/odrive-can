@@ -6,7 +6,6 @@ coloredlogs
 coverage
 invoke
 mypy
-netifaces
 odrive
 orjson
 pre-commit

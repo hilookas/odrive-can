@@ -12,7 +12,7 @@ print(f"Found ODrive {drv.serial_number}")
 
 drv.axis0.config.can.node_id = 1
 drv.axis0.config.can.encoder_rate_ms = 100
-drv.axis0.config.can.heartbeat_rate_ms = 1000
+drv.axis0.config.can.heartbeat_rate_ms = 200
 
 
 drv.axis1.config.can.node_id = 8

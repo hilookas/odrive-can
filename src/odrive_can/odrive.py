@@ -7,16 +7,18 @@
 
 
 # import asyncio
+from enum import Enum
 import logging
 from typing import Optional
 
 import can
 
 from odrive_can.timer import Timer
-from odrive_can import get_dbc, get_axis_id
+from odrive_can import get_dbc, extract_ids
 
-MESSAGE_TIMEOUT = 0.1  # seconds
-CUSTOM_TIMEOUTS = {"Heartbeat": 1.1}
+# message timeout in seconds
+MESSAGE_TIMEOUT = 0.1
+CUSTOM_TIMEOUTS = {"Heartbeat": 0.5}
 
 
 dbc = get_dbc()
@@ -28,6 +30,13 @@ class DriveError(Exception):
 
 class HeartbeatError(Exception):
     """No heartbeat error"""
+
+
+class CommandId(Enum):
+    """short list of command IDs, used for ignoring messages"""
+
+    HEARTBEAT = 0x01
+    ENCODER_ESTIMATE = 0x09
 
 
 class CanMsg:
@@ -62,6 +71,8 @@ class ODriveCAN:
 
         self._messages: dict[str, CanMsg] = {}  # latest message for each type
 
+        self._ignored_messages: set = set()  # message ids to ignore
+
     def check_alive(self):
         """check if axis is alive, rasie an exception if not"""
         if "Heartbeat" not in self._messages:
@@ -88,12 +99,29 @@ class ODriveCAN:
             if msg.data[field] != 0:
                 raise DriveError(f"{field} Error Detected")
 
+    def ignore_message(self, cmd_id: CommandId):
+        """ignore message by command ID"""
+        self._ignored_messages.add(cmd_id.value)
+
+    def allow_message(self, cmd_id: CommandId):
+        """allow message by command ID"""
+        self._ignored_messages.remove(cmd_id.value)
+
     def _message_handler(self, msg: can.Message):
         """handle received message"""
 
-        if get_axis_id(msg) != self._axis_id:
+        axis_id, cmd_id = extract_ids(msg.arbitration_id)
+
+        if axis_id != self._axis_id:
             # Ignore messages that aren't for this axis
             return
+
+        if cmd_id in self._ignored_messages:
+            # Ignore messages that were requested to be ignored, this is used
+            # to increase performance especially for frequent encoder updates
+            return
+
+        self._log.debug(f"{axis_id=} {cmd_id=}")
 
         if msg.is_remote_frame:
             # RTR messages are requests for data, they don't have a data payload
@@ -134,8 +162,10 @@ class ODriveCAN:
                 data=data,
                 is_extended_id=False,
             )
-
-        self._bus.send(msg)  # type: ignore
+        try:
+            self._bus.send(msg)  # type: ignore
+        except can.CanError as error:
+            self._log.error(error)
 
     def __del__(self):
         """destructor"""
