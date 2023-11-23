@@ -4,7 +4,7 @@
 
  Copyright (c) 2023 ROX Automation - Jev Kuznetsov
 """
-
+import time
 import socket
 import json
 import logging
@@ -20,8 +20,11 @@ class UDP_Client:
 
         self._log = logging.getLogger(self.__class__.__name__)
 
-    def send(self, data: dict):
+    def send(self, data: dict, add_timestamp: bool = True):
         """send data to UDP server"""
+        if add_timestamp:
+            data["ts"] = time.time()
+
         try:
             self._sock.sendto(json.dumps(data).encode(), (self._host, self._port))
         except Exception as e:  # pylint: disable=broad-except
