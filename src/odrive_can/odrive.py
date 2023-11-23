@@ -5,7 +5,7 @@
  Copyright (c) 2023 ROX Automation - Jev Kuznetsov
 """
 
-
+from typing import Callable
 import asyncio
 import logging
 import threading
@@ -83,6 +83,9 @@ class ODriveCAN:
         self._response_event = asyncio.Event()  # event to signal response to rtr
         self._request_id: int = 0  # request id for rtr
 
+        # called on incoming position message
+        self.position_callback: Optional[Callable] = None
+
         self._running = True  # flag to stop loops
 
     def check_alive(self):
@@ -148,6 +151,22 @@ class ODriveCAN:
         response = self._messages.get(msg_name)
         return response.data if response else {}
 
+    async def get_bus_voltage_current(self) -> dict:
+        """request bus voltage and current"""
+        return await self.request("Get_Bus_Voltage_Current")
+
+    @property
+    def axis_state(self) -> str:
+        """get axis state"""
+        return self._messages["Heartbeat"].data["Axis_State"]
+
+    # def set_axis_state(self, state: str):
+
+    def set_linear_count(self, position: float = 0.0):
+        """set linear count to position"""
+        self._log.info(f"resetting encoder to {position}")
+        self._send_message("Set_Linear_Count", {"Position": position})
+
     async def start(self):
         """start driver"""
         self._log.info("starting driver")
@@ -166,6 +185,7 @@ class ODriveCAN:
 
         self._recieve_thread.join()
 
+    # ------------------- private -------------------
     def _clear_request(self):
         """clear request"""
         self._log.debug("clearing request")
@@ -200,7 +220,9 @@ class ODriveCAN:
 
                 self._log.debug(f"< {axis_id=} {cmd_id=}")
 
-                asyncio.run_coroutine_threadsafe(self._msg_queue.put(msg), loop)
+                asyncio.run_coroutine_threadsafe(
+                    self._msg_queue.put((cmd_id, msg)), loop
+                )
             except Exception as e:  # pylint: disable=broad-except
                 self._log.error(f"Error in CAN reader thread: {e}")
 
@@ -210,7 +232,7 @@ class ODriveCAN:
         """handle received message"""
 
         while self._running:
-            msg = await self._msg_queue.get()
+            cmd_id, msg = await self._msg_queue.get()
             self._msg_queue.task_done()
             try:
                 # process message
@@ -221,6 +243,15 @@ class ODriveCAN:
                 if msg.arbitration_id == self._request_id:
                     self._log.debug("response received")
                     self._response_event.set()
+
+                # call position callback
+                if cmd_id == CommandId.ENCODER_ESTIMATE.value:
+                    if self.position_callback is not None:
+                        self.position_callback(can_msg.data)
+
+                # debug heartbeat
+                if cmd_id == CommandId.HEARTBEAT.value:
+                    self._log.debug(f"heartbeat: {can_msg.data}")
 
             except KeyError:
                 # If the message ID is not in the DBC file, print the raw message

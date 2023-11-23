@@ -18,7 +18,12 @@ log = logging.getLogger()
 coloredlogs.install(level="DEBUG", fmt=LOG_FORMAT, datefmt=TIME_FORMAT)
 
 
+AXIS_ID = 1
 INTERFACE = "slcan0"
+
+
+def position_callback(data):
+    log.info(f"Position: {data}")
 
 
 async def get_bus_voltage_current(drv: ODriveCAN):
@@ -26,7 +31,7 @@ async def get_bus_voltage_current(drv: ODriveCAN):
 
     @timeit
     async def request(drv: ODriveCAN):
-        data = await drv.request("Get_Bus_Voltage_Current")
+        data = await drv.get_bus_voltage_current()
         log.info(f"{data=}")
 
     log.info("Requesting bus voltage and current")
@@ -42,13 +47,18 @@ async def get_bus_voltage_current(drv: ODriveCAN):
 
 
 async def main():
-    drv = ODriveCAN(axis_id=1, channel=INTERFACE)
+    drv = ODriveCAN(axis_id=AXIS_ID, channel=INTERFACE)
+    drv.position_callback = position_callback
     await drv.start()
 
     # log some messages
     await asyncio.sleep(1.0)
 
+    # set log level to INFO
     coloredlogs.set_level(logging.INFO)
+
+    # get curent axis state
+    log.info(f"Axis state: {drv.axis_state}")
 
     # ignore encoder estimate messages
     drv.ignore_message(CommandId.ENCODER_ESTIMATE)
@@ -56,6 +66,16 @@ async def main():
     # request bus voltage and current
     await get_bus_voltage_current(drv)
 
+    # enable encoder feedback
+    drv.allow_message(CommandId.ENCODER_ESTIMATE)
+
+    # reset encoder
+    drv.set_linear_count()
+    await asyncio.sleep(0.5)
+    drv.set_linear_count(100.1)
+    await asyncio.sleep(0.5)
+
+    # shutdown
     drv.stop()
     await asyncio.sleep(0.5)
 
