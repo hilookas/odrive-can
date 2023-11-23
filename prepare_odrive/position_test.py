@@ -4,16 +4,15 @@
 
  Copyright (c) 2023 ROX Automation - Jev Kuznetsov
 """
-import time
 import asyncio
-import odrive  # type: ignore
+import odrive
 import odrive.enums as enums  # type: ignore
 from utils import check_error
 
 from odrive_can.tools import UDP_Client
 
 DURATION = 5
-SETPOINT = 20
+SETPOINT = 60
 
 drv = odrive.find_any()
 ax = drv.axis0
@@ -25,10 +24,18 @@ drv.clear_errors()
 check_error(drv)
 
 ax.controller.config.control_mode = enums.ControlMode.POSITION_CONTROL
-ax.controller.config.input_mode = enums.InputMode.POS_FILTER
+ax.controller.config.input_mode = enums.InputMode.TRAP_TRAJ
 ax.requested_state = enums.AxisState.CLOSED_LOOP_CONTROL
 ax.controller.config.input_filter_bandwidth = 4.0
 ax.motor.config.current_lim = 5.0
+ax.controller.config.vel_limit = 50.0
+
+
+# trajectory control
+ax.trap_traj.config.vel_limit = 40.0
+ax.trap_traj.config.accel_limit = 40.0
+ax.trap_traj.config.decel_limit = 40.0
+
 
 # position control
 ax.controller.config.pos_gain = 3.0
@@ -44,7 +51,6 @@ async def feedback_loop():
         check_error(drv)
 
         data = {
-            "ts": time.time(),
             "sp": ax.controller.input_pos,
             "vel": ax.encoder.vel_estimate,
             "pos": ax.encoder.pos_estimate,
