@@ -160,12 +160,15 @@ class ODriveCAN:
         """get axis state"""
         return self._messages["Heartbeat"].data["Axis_State"]
 
-    # def set_axis_state(self, state: str):
+    def set_axis_state(self, state: str | int):
+        """set axis state"""
+        self._log.info(f"setting axis state to {state}")
+        self._send_message("Set_Axis_State", {"Axis_Requested_State": state})
 
-    def set_linear_count(self, position: float = 0.0):
-        """set linear count to position"""
-        self._log.info(f"resetting encoder to {position}")
-        self._send_message("Set_Linear_Count", {"Position": position})
+    def reset_linear_count(self):
+        """set linear count to 0"""
+        self._log.info("resetting encoder")
+        self._send_message("Set_Linear_Count", {"Position": 0})
 
     async def start(self):
         """start driver"""

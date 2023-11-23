@@ -46,6 +46,15 @@ async def get_bus_voltage_current(drv: ODriveCAN):
         await asyncio.sleep(0.1)
 
 
+async def change_axis_state(drv: ODriveCAN):
+    """change axis state to closed loop control"""
+    # get curent axis state
+    log.info(f"Axis state: {drv.axis_state}")
+    drv.set_axis_state("CLOSED_LOOP_CONTROL")
+    await asyncio.sleep(0.5)  #  wait for heartbeat update
+    log.info(f"Axis state: {drv.axis_state}")
+
+
 async def main():
     drv = ODriveCAN(axis_id=AXIS_ID, channel=INTERFACE)
     drv.position_callback = position_callback
@@ -54,11 +63,10 @@ async def main():
     # log some messages
     await asyncio.sleep(1.0)
 
+    await change_axis_state(drv)
+
     # set log level to INFO
     coloredlogs.set_level(logging.INFO)
-
-    # get curent axis state
-    log.info(f"Axis state: {drv.axis_state}")
 
     # ignore encoder estimate messages
     drv.ignore_message(CommandId.ENCODER_ESTIMATE)
@@ -70,10 +78,8 @@ async def main():
     drv.allow_message(CommandId.ENCODER_ESTIMATE)
 
     # reset encoder
-    drv.set_linear_count()
-    await asyncio.sleep(0.5)
-    drv.set_linear_count(100.1)
-    await asyncio.sleep(0.5)
+    drv.reset_linear_count()
+    await asyncio.sleep(1.0)
 
     # shutdown
     drv.stop()
