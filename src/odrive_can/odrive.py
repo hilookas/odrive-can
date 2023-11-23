@@ -6,7 +6,7 @@
 """
 
 
-# import asyncio
+import asyncio
 from enum import Enum
 import logging
 from typing import Optional
@@ -76,6 +76,9 @@ class ODriveCAN:
 
         self._ignored_messages: set = set()  # message ids to ignore
 
+        self._response_event = asyncio.Event()  # event to signal response to rtr
+        self._request_id: int = 0  # request id for rtr
+
     def check_alive(self):
         """check if axis is alive, rasie an exception if not"""
         if "Heartbeat" not in self._messages:
@@ -110,6 +113,39 @@ class ODriveCAN:
         """allow message by command ID"""
         self._ignored_messages.remove(cmd_id.value)
 
+    async def request(self, msg_name: str, timeout: float = 0.5) -> dict:
+        """Send an RTR message and wait for the response with a timeout."""
+
+        # check if another request is in progress
+        if self._response_event.is_set():
+            raise RuntimeError("another request is already in progress")
+
+        self._response_event.clear()  # Reset the event before waiting
+
+        # Send the request
+        self._send_message(msg_name, rtr=True)
+
+        try:
+            # Wait for the response with a timeout
+            await asyncio.wait_for(self._response_event.wait(), timeout)
+            self._log.debug("awaited response")
+        except asyncio.TimeoutError as error:
+            # Handle the timeout
+            self._log.error(f"Timeout waiting for response to {msg_name}")
+            raise TimeoutError(f"Timeout waiting for response to {msg_name}") from error
+        finally:
+            self._clear_request()
+
+        # Process and return the response
+        response = self._messages.get(msg_name)
+        return response.data if response else {}
+
+    def _clear_request(self):
+        """clear request"""
+        self._log.debug("clearing request")
+        self._response_event.clear()
+        self._request_id = 0
+
     def _message_handler(self, msg: can.Message):
         """handle received message"""
 
@@ -138,6 +174,11 @@ class ODriveCAN:
             self._log.debug(f"< {can_msg}")
             self._messages[can_msg.name] = can_msg
 
+            # check if this is a response to a request
+            if msg.arbitration_id == self._request_id:
+                self._log.debug("response received")
+                self._response_event.set()
+
         except KeyError:
             # If the message ID is not in the DBC file, print the raw message
             self._log.info(f"Raw: {msg}")
@@ -156,6 +197,8 @@ class ODriveCAN:
                 is_extended_id=False,
                 is_remote_frame=True,
             )
+            # set request id for response
+            self._request_id = msg.arbitration_id
         else:
             full_msg_dict = {signal.name: 0 for signal in msg.signals}
             if msg_dict is not None:

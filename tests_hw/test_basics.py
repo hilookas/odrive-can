@@ -1,6 +1,10 @@
 import logging
 from time import sleep
-from odrive_can.odrive import ODriveCAN, CommandId
+import time
+
+import pytest
+
+from odrive_can.odrive import CommandId, ODriveCAN
 
 # pylint: disable=protected-access
 
@@ -29,7 +33,29 @@ def test_ignore():
     drv.check_errors()
 
 
-def test_request():
+def test_request_raw():
     # bus voltage and current
     drv._send_message("Get_Bus_Voltage_Current", rtr=True)
     sleep(0.1)
+    drv._clear_request()
+    drv.check_alive()
+    drv.check_errors()
+
+
+@pytest.mark.asyncio
+async def test_request():
+    # bus voltage and current
+    logging.info("Requesting bus voltage and current")
+    drv.ignore_message(CommandId.ENCODER_ESTIMATE)
+
+    for _ in range(4):
+        t_start = time.perf_counter()
+        data = await drv.request("Get_Bus_Voltage_Current")
+        t_end = time.perf_counter()
+        logging.info(f"Request took {t_end-t_start:.3f} s")
+    assert "Bus_Voltage" in data
+    assert "Bus_Current" in data
+    sleep(0.1)
+
+    drv.check_alive()
+    drv.check_errors()
