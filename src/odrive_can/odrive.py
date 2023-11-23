@@ -165,10 +165,32 @@ class ODriveCAN:
         self._log.info(f"setting axis state to {state}")
         self._send_message("Set_Axis_State", {"Axis_Requested_State": state})
 
-    def reset_linear_count(self):
-        """set linear count to 0"""
-        self._log.info("resetting encoder")
-        self._send_message("Set_Linear_Count", {"Position": 0})
+    def set_linear_count(self, count: int = 0):
+        """set linear count"""
+        self._log.info(f"setting count to {count}")
+        self._send_message("Set_Linear_Count", {"Position": count})
+
+    def set_controller_mode(self, control_mode: int | str, input_mode: int | str):
+        """set controller mode"""
+        self._log.info(f"setting controller mode to {control_mode}, {input_mode}")
+        self._send_message(
+            "Set_Controller_Mode",
+            {"Control_Mode": control_mode, "Input_Mode": input_mode},
+        )
+
+    def set_pos_gain(self, gain: float):
+        """set position gain"""
+        self._log.info(f"setting position gain to {gain}")
+        self._send_message("Set_Pos_Gain", {"Pos_Gain": gain})
+
+    def set_input_pos(self, pos: float):
+        """set input position"""
+        self._log.info(f"setting input position to {pos}")
+        self._send_message("Set_Input_Pos", {"Input_Pos": pos})
+
+    def reboot(self):
+        """request reboot"""
+        self._send_message("Reboot")
 
     async def start(self):
         """start driver"""
@@ -184,6 +206,8 @@ class ODriveCAN:
     def stop(self):
         """stop driver"""
         self._log.info("stopping driver")
+        self.set_axis_state("IDLE")
+
         self._running = False
 
         self._recieve_thread.join()

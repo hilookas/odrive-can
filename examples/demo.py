@@ -12,6 +12,7 @@ import coloredlogs  # type: ignore
 
 from odrive_can import LOG_FORMAT, TIME_FORMAT
 from odrive_can.odrive import CommandId, ODriveCAN
+from odrive_can.tools import UDP_Client
 from odrive_can.timer import timeit
 
 log = logging.getLogger()
@@ -21,9 +22,12 @@ coloredlogs.install(level="DEBUG", fmt=LOG_FORMAT, datefmt=TIME_FORMAT)
 AXIS_ID = 1
 INTERFACE = "slcan0"
 
+udp = UDP_Client()
+
 
 def position_callback(data):
-    log.info(f"Position: {data}")
+    """position callback, send data to UDP client"""
+    udp.send(data)
 
 
 async def get_bus_voltage_current(drv: ODriveCAN):
@@ -55,6 +59,35 @@ async def change_axis_state(drv: ODriveCAN):
     log.info(f"Axis state: {drv.axis_state}")
 
 
+async def position_control(drv: ODriveCAN):
+    """simple position control loop"""
+
+    log.info("-----------Running position control-----------------")
+
+    # set positiion to zero
+    drv.set_linear_count(0)
+
+    drv.set_controller_mode("POSITION_CONTROL", "POS_FILTER")
+    drv.set_pos_gain(3.0)
+
+    # setpoint
+    setpoint = 20
+    duration = 5
+
+    for _ in range(4):
+        try:
+            drv.check_errors()
+            log.info(f"Setting position setpoint to {setpoint}")
+            drv.set_input_pos(setpoint)
+            await asyncio.sleep(duration)
+            log.info(f"Setting position setpoint to {-setpoint}")
+            drv.set_input_pos(-setpoint)
+            await asyncio.sleep(duration)
+
+        except Exception as e:  # pylint: disable=broad-except
+            log.warning(e)
+
+
 async def main():
     drv = ODriveCAN(axis_id=AXIS_ID, channel=INTERFACE)
     drv.position_callback = position_callback
@@ -78,8 +111,11 @@ async def main():
     drv.allow_message(CommandId.ENCODER_ESTIMATE)
 
     # reset encoder
-    drv.reset_linear_count()
+    drv.set_linear_count()
     await asyncio.sleep(1.0)
+
+    # run position control
+    await position_control(drv)
 
     # shutdown
     drv.stop()
