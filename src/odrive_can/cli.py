@@ -43,6 +43,11 @@ def cli():
     pass  # pragma: no cover
 
 
+@cli.group()
+def demo():
+    """demonstration of control modes"""
+
+
 @cli.command()
 def info():
     """Print package info"""
@@ -126,6 +131,21 @@ def backup(output_file):
     with dest.open("w", encoding="utf8") as f:
         json.dump(parsed_data, f, indent=2)
     print(f"Formatted config saved to {dest}")
+
+
+@demo.command()
+@click.option("--axis-id", default=0, help="ODrive axis ID")
+@click.option("--interface", default="slcan0", help="CAN interface")
+@click.option("--debug", is_flag=True, help="Turn on debugging")
+@common_cli
+def position(axis_id, interface, debug):
+    """Position control demo"""
+    from .examples.position_control import main
+
+    try:
+        main(axis_id=axis_id, interface=interface)
+    except Exception as e:
+        log.error(e)
 
 
 if __name__ == "__main__":

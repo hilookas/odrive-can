@@ -63,13 +63,16 @@ class ODriveCAN:
     """odrive CAN driver"""
 
     def __init__(
-        self, axis_id: int = 0, channel: str = "can0", interface: str = "socketcan"
+        self,
+        axis_id: int = 0,
+        interface: str = "can0",
+        interface_type: str = "socketcan",
     ):
         self._log = logging.getLogger(f"odrive.{axis_id}")
-        self._log.info(f"Starting mock {axis_id=} , {channel=} , {interface=}")
+        self._log.info(f"Starting mock {axis_id=} , {interface=} , {interface_type=}")
         self._axis_id = axis_id
 
-        self._bus = can.interface.Bus(channel=channel, interface=interface)
+        self._bus = can.interface.Bus(channel=interface, interface=interface_type)
         # self._notifier = can.Notifier(self._bus, [self._message_handler])
 
         self._recieve_thread: Optional[threading.Thread] = None
@@ -184,8 +187,13 @@ class ODriveCAN:
 
     def set_input_pos(self, pos: float):
         """set input position"""
-        self._log.info(f"setting input position to {pos}")
+        self._log.debug(f"setting input position to {pos}")
         self._send_message("Set_Input_Pos", {"Input_Pos": pos})
+
+    def clear_errors(self):
+        """clear errors"""
+        self._log.info("clearing errors")
+        self._send_message("Clear_Errors")
 
     def reboot(self):
         """request reboot"""
