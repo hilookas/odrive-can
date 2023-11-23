@@ -21,22 +21,43 @@ coloredlogs.install(level="DEBUG", fmt=LOG_FORMAT, datefmt=TIME_FORMAT)
 INTERFACE = "slcan0"
 
 
-@timeit
 async def get_bus_voltage_current(drv: ODriveCAN):
-    data = await drv.request("Get_Bus_Voltage_Current")
-    log.info(f"Bus voltage: {data['Bus_Voltage']:.2f} V")
+    """request bus voltage and current"""
+
+    @timeit
+    async def request(drv: ODriveCAN):
+        data = await drv.request("Get_Bus_Voltage_Current")
+        log.info(f"{data=}")
+
+    log.info("Requesting bus voltage and current")
+    # request bus voltage and current
+    for _ in range(4):
+        log.info("------------------------------")
+        try:
+            await request(drv)
+
+        except Exception as e:  # pylint: disable=broad-except
+            log.warning(e)
+        await asyncio.sleep(0.1)
 
 
 async def main():
     drv = ODriveCAN(axis_id=1, channel=INTERFACE)
+    await drv.start()
+
+    # log some messages
+    await asyncio.sleep(1.0)
+
+    coloredlogs.set_level(logging.INFO)
 
     # ignore encoder estimate messages
     drv.ignore_message(CommandId.ENCODER_ESTIMATE)
 
     # request bus voltage and current
-    for idx in range(4):
-        await get_bus_voltage_current(drv)
-        await asyncio.sleep(0.1)
+    await get_bus_voltage_current(drv)
+
+    drv.stop()
+    await asyncio.sleep(0.5)
 
 
 if __name__ == "__main__":
