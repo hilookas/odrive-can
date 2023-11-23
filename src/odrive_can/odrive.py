@@ -5,12 +5,11 @@
  Copyright (c) 2023 ROX Automation - Jev Kuznetsov
 """
 
-from typing import Callable
 import asyncio
 import logging
 import threading
 from enum import Enum
-from typing import Optional
+from typing import Callable, Optional
 
 import can
 

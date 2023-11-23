@@ -14,7 +14,7 @@ TIMEOUT = 1.0
 def receive_and_decode(bus: can.Bus, dbc):
     idx = 0  # message index
     while True:
-        msg = bus.recv(TIMEOUT)
+        msg = bus.recv(TIMEOUT)  # type: ignore
 
         if msg is None:
             raise TimeoutError("Timeout occurred, no message.")
@@ -43,11 +43,11 @@ def receive_and_decode(bus: can.Bus, dbc):
         idx += 1
 
 
-def main(channel: str = "vcan0"):
+def main(interface: str = "vcan0"):
     # Load the DBC file
     dbc = odrive_can.get_dbc()
 
-    bus = can.Bus(channel=channel, bustype="socketcan", receive_own_messages=True)
+    bus = can.Bus(channel=interface, bustype="socketcan", receive_own_messages=True)
 
     try:
         receive_and_decode(bus, dbc)

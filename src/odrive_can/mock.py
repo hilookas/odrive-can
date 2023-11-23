@@ -139,9 +139,9 @@ class ODriveCANMock:
         self.bus.shutdown()
 
 
-def main(axis_id: int = 0, channel: str = "vcan0"):
+def main(axis_id: int = 0, interface: str = "vcan0"):
     try:
-        mock = ODriveCANMock(axis_id, channel)
+        mock = ODriveCANMock(axis_id, interface)
         mock.start()
     except KeyboardInterrupt:
         logging.info("KeyboardInterrupt")

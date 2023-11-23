@@ -1,4 +1,4 @@
-from odrive_can.odrive import CommandId, ODriveCAN
+from odrive_can.odrive import CommandId
 
 
 def test_message_ids():

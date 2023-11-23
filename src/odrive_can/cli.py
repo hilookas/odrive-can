@@ -53,25 +53,25 @@ def info():
 
 @cli.command()
 @click.option("--axis-id", default=0, help="ODrive axis ID")
-@click.option("--channel", default="vcan0", help="CAN channel")
+@click.option("--interface", default="vcan0", help="CAN interface")
 @click.option("--debug", is_flag=True, help="Turn on debugging")
 @common_cli
-def mock(axis_id, channel, debug):
+def mock(axis_id, interface, debug):
     """Mock ODrive CAN interface"""
     from .mock import main
 
-    main(axis_id=axis_id, channel=channel)
+    main(axis_id=axis_id, interface=interface)
 
 
 @cli.command()
-@click.argument("channel")
+@click.argument("interface")
 @click.option("--debug", is_flag=True, help="Turn on debugging")
 @common_cli
-def inspect(channel, debug):
+def inspect(interface, debug):
     """Inspect and decode ODrive CAN messages"""
     from .inspector import main
 
-    main(channel=channel)
+    main(interface=interface)
 
 
 @cli.command()
