@@ -5,7 +5,7 @@
  Copyright (c) 2023 ROX Automation - Jev Kuznetsov
 """
 import asyncio
-import odrive
+import odrive  # type: ignore
 import odrive.enums as enums  # type: ignore
 from utils import check_error
 

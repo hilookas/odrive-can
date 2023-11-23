@@ -11,7 +11,8 @@ import odrive_can
 TIMEOUT = 1.0
 
 
-def receive_and_decode(bus: can.Bus, dbc):
+def receive_and_decode(bus):
+    dbc = odrive_can.get_dbc()
     idx = 0  # message index
     while True:
         msg = bus.recv(TIMEOUT)  # type: ignore
@@ -45,12 +46,11 @@ def receive_and_decode(bus: can.Bus, dbc):
 
 def main(interface: str = "vcan0"):
     # Load the DBC file
-    dbc = odrive_can.get_dbc()
 
     bus = can.Bus(channel=interface, bustype="socketcan", receive_own_messages=True)
 
     try:
-        receive_and_decode(bus, dbc)
+        receive_and_decode(bus)
     except KeyboardInterrupt:
         print("Stopped")
     except TimeoutError as error:
