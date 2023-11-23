@@ -55,6 +55,9 @@ class CanMsg:
         """check if timer has expired"""
         return self._timer.is_timeout()
 
+    def __str__(self):
+        return f"{self.name}: {self.data}"
+
 
 class ODriveCAN:
     """odrive CAN driver"""
@@ -121,7 +124,7 @@ class ODriveCAN:
             # to increase performance especially for frequent encoder updates
             return
 
-        self._log.debug(f"{axis_id=} {cmd_id=}")
+        # self._log.debug(f"{axis_id=} {cmd_id=}")
 
         if msg.is_remote_frame:
             # RTR messages are requests for data, they don't have a data payload
@@ -132,7 +135,7 @@ class ODriveCAN:
         try:
             # process message
             can_msg = CanMsg(msg)
-            self._log.debug(f"received {can_msg.name}: {can_msg.data}")
+            self._log.debug(f"< {can_msg}")
             self._messages[can_msg.name] = can_msg
 
         except KeyError:
@@ -142,8 +145,10 @@ class ODriveCAN:
     def _send_message(
         self, msg_name: str, msg_dict: Optional[dict] = None, rtr: bool = False
     ):
-        """send message by name. If no msg_dict is provided, use zeros"""
-        msg = dbc.get_message_by_name(msg_name)
+        """send message by name. If no msg_dict is provided, use zeros
+        msg_name is the name of the message without the "AxisX_" prefix
+        """
+        msg = dbc.get_message_by_name(f"Axis{self._axis_id}_{msg_name}")
         if rtr:
             # For RTR messages, don't specify the data field
             msg = can.Message(
