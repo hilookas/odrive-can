@@ -7,17 +7,18 @@
 
 
 import asyncio
-from enum import Enum
 import logging
+import threading
+from enum import Enum
 from typing import Optional
 
 import can
 
+from odrive_can import extract_ids, get_dbc
 from odrive_can.timer import Timer
-from odrive_can import get_dbc, extract_ids
 
 # message timeout in seconds
-MESSAGE_TIMEOUT = 0.1
+MESSAGE_TIMEOUT = 0.2
 CUSTOM_TIMEOUTS = {"Heartbeat": 0.5}
 
 
@@ -70,7 +71,10 @@ class ODriveCAN:
         self._axis_id = axis_id
 
         self._bus = can.interface.Bus(channel=channel, interface=interface)
-        self._notifier = can.Notifier(self._bus, [self._message_handler])
+        # self._notifier = can.Notifier(self._bus, [self._message_handler])
+
+        self._recieve_thread: Optional[threading.Thread] = None
+        self._msg_queue: asyncio.Queue = asyncio.Queue()
 
         self._messages: dict[str, CanMsg] = {}  # latest message for each type
 
@@ -78,6 +82,8 @@ class ODriveCAN:
 
         self._response_event = asyncio.Event()  # event to signal response to rtr
         self._request_id: int = 0  # request id for rtr
+
+        self._running = True  # flag to stop loops
 
     def check_alive(self):
         """check if axis is alive, rasie an exception if not"""
@@ -120,10 +126,12 @@ class ODriveCAN:
         if self._response_event.is_set():
             raise RuntimeError("another request is already in progress")
 
-        self._response_event.clear()  # Reset the event before waiting
+        # self._response_event.clear()  # Reset the event before waiting
 
         # Send the request
         self._send_message(msg_name, rtr=True)
+
+        self._log.debug(f"{self._response_event.is_set()=} {self._request_id=}")
 
         try:
             # Wait for the response with a timeout
@@ -133,12 +141,30 @@ class ODriveCAN:
             # Handle the timeout
             self._log.error(f"Timeout waiting for response to {msg_name}")
             raise TimeoutError(f"Timeout waiting for response to {msg_name}") from error
-        finally:
-            self._clear_request()
+
+        self._clear_request()
 
         # Process and return the response
         response = self._messages.get(msg_name)
         return response.data if response else {}
+
+    async def start(self):
+        """start driver"""
+        self._log.info("starting driver")
+        loop = asyncio.get_running_loop()  # Get the current asyncio event loop
+        self._recieve_thread = threading.Thread(
+            target=self._can_reader_thread, args=(loop,), daemon=True
+        )
+        self._recieve_thread.start()
+
+        asyncio.create_task(self._message_handler())
+
+    def stop(self):
+        """stop driver"""
+        self._log.info("stopping driver")
+        self._running = False
+
+        self._recieve_thread.join()
 
     def _clear_request(self):
         """clear request"""
@@ -146,42 +172,61 @@ class ODriveCAN:
         self._response_event.clear()
         self._request_id = 0
 
-    def _message_handler(self, msg: can.Message):
+    def _can_reader_thread(self, loop):
+        """receive can messages, filter and put them into the queue"""
+        while self._running:
+            try:
+                msg = self._bus.recv(MESSAGE_TIMEOUT)
+                if not msg:
+                    self._log.warning("can timeout")
+                    continue
+
+                axis_id, cmd_id = extract_ids(msg.arbitration_id)
+
+                # Ignore messages that aren't for this axis
+                if axis_id != self._axis_id:
+                    continue
+
+                # Ignore messages that were requested to be ignored, this is used
+                # to increase performance especially for frequent encoder updates
+                if cmd_id in self._ignored_messages:
+                    continue
+
+                # RTR messages are requests for data, they don't have a data payload
+                # no RTR messages are sent by the odrive, this should not happen
+                if msg.is_remote_frame:
+                    self._log.warning("RTR message received")
+                    continue
+
+                self._log.debug(f"< {axis_id=} {cmd_id=}")
+
+                asyncio.run_coroutine_threadsafe(self._msg_queue.put(msg), loop)
+            except Exception as e:  # pylint: disable=broad-except
+                self._log.error(f"Error in CAN reader thread: {e}")
+
+        self._log.debug("CAN reader thread stopped")
+
+    async def _message_handler(self):
         """handle received message"""
 
-        axis_id, cmd_id = extract_ids(msg.arbitration_id)
+        while self._running:
+            msg = await self._msg_queue.get()
+            self._msg_queue.task_done()
+            try:
+                # process message
+                can_msg = CanMsg(msg)
+                self._messages[can_msg.name] = can_msg
 
-        if axis_id != self._axis_id:
-            # Ignore messages that aren't for this axis
-            return
+                # check if this is a response to a request
+                if msg.arbitration_id == self._request_id:
+                    self._log.debug("response received")
+                    self._response_event.set()
 
-        if cmd_id in self._ignored_messages:
-            # Ignore messages that were requested to be ignored, this is used
-            # to increase performance especially for frequent encoder updates
-            return
+            except KeyError:
+                # If the message ID is not in the DBC file, print the raw message
+                self._log.info(f"Raw: {msg}")
 
-        # self._log.debug(f"{axis_id=} {cmd_id=}")
-
-        if msg.is_remote_frame:
-            # RTR messages are requests for data, they don't have a data payload
-            # no RTR messages are sent by the odrive, this should not happen
-            self._log.warning("RTR message received")
-            return
-
-        try:
-            # process message
-            can_msg = CanMsg(msg)
-            self._log.debug(f"< {can_msg}")
-            self._messages[can_msg.name] = can_msg
-
-            # check if this is a response to a request
-            if msg.arbitration_id == self._request_id:
-                self._log.debug("response received")
-                self._response_event.set()
-
-        except KeyError:
-            # If the message ID is not in the DBC file, print the raw message
-            self._log.info(f"Raw: {msg}")
+        self._log.debug("message handler stopped")
 
     def _send_message(
         self, msg_name: str, msg_dict: Optional[dict] = None, rtr: bool = False
@@ -217,5 +262,4 @@ class ODriveCAN:
 
     def __del__(self):
         """destructor"""
-        self._notifier.stop()
         self._bus.shutdown()

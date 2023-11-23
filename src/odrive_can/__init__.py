@@ -5,7 +5,7 @@ from pathlib import Path
 import can
 import cantools
 
-LOG_FORMAT = "%(asctime)s [%(name)s] - %(message)s"
+LOG_FORMAT = "%(asctime)s [%(name)s] %(filename)s:%(lineno)d - %(message)s"
 TIME_FORMAT = "%H:%M:%S.%f"
 
 
