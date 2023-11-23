@@ -27,3 +27,9 @@ def test_ignore():
 
     drv.check_alive()
     drv.check_errors()
+
+
+def test_request():
+    # bus voltage and current
+    drv._send_message("Get_Bus_Voltage_Current", rtr=True)
+    sleep(0.1)
