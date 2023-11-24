@@ -30,3 +30,9 @@ Code examples below are located in `examples` directory.
 ```python
 --8<-- "examples/decode_can.py"
 ```
+
+## Driver demo
+
+```python
+--8<-- "examples/demo.py"
+```
