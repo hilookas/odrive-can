@@ -154,5 +154,20 @@ def position(axis_id, interface, debug, input_mode):
         log.error(e)
 
 
+@demo.command()
+@click.option("--axis-id", default=0, help="ODrive axis ID")
+@click.option("--interface", default="slcan0", help="CAN interface")
+@click.option("--debug", is_flag=True, help="Turn on debugging")
+@common_cli
+def velocity(axis_id, interface, debug):
+    """Velocity control demo"""
+    from .examples.velocity_control import main
+
+    try:
+        main(axis_id=axis_id, interface=interface)
+    except Exception as e:
+        log.error(e)
+
+
 if __name__ == "__main__":
     cli()  # pragma: no cover
