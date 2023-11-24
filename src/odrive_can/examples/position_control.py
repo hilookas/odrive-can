@@ -29,7 +29,7 @@ async def configure_controller(drv: ODriveCAN, input_mode: str = "POS_FILTER"):
     """setup control parameters"""
 
     # set parameters
-    drv.set_pos_gain(1.0)
+    drv.set_pos_gain(5.0)
 
     drv.set_traj_vel_limit(40.0)
     drv.set_traj_accel_limits(40.0, 40.0)
