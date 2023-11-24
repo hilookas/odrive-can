@@ -9,8 +9,9 @@ import asyncio
 import logging
 from odrive_can.odrive import ODriveCAN
 from odrive_can.tools import UDP_Client
+from odrive_can.setpoints import sawtooth_generator
 
-SETTLE_TIME = 5.0  # settle time in [s]
+SETPOINT_DELAY = 0.1
 
 
 log = logging.getLogger("pos_ctl")
@@ -56,20 +57,19 @@ async def main_loop(drv: ODriveCAN, input_mode: str = "POS_FILTER"):
 
     await configure_controller(drv)
 
-    # start running
+    # make setpoint generator
+    setpoint_gen = sawtooth_generator(roc=10.0, max_val=40.0)
 
     drv.set_input_pos(setpoint)
     await asyncio.sleep(2)
 
-    idx = 0
     try:
         while True:
             drv.check_errors()
+            setpoint = next(setpoint_gen)
 
             drv.set_input_vel(setpoint)
-            idx += 1
-            await asyncio.sleep(SETTLE_TIME)
-            setpoint = -setpoint
+            await asyncio.sleep(SETPOINT_DELAY)
 
     except KeyboardInterrupt:
         log.info("Stopping")

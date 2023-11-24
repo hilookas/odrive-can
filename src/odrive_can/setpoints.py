@@ -10,7 +10,9 @@ from odrive_can.linear_model import LinearModel
 
 
 def sawtooth_generator(roc: float = 10.0, max_val: float = 20.0):
-    model = LinearModel(roc=roc, val=0.0, setpoint=100.0, min_val=0.0, max_val=max_val)
+    model = LinearModel(
+        roc=roc, val=0.0, setpoint=100.0, min_val=-max_val, max_val=max_val
+    )
     t = time.time()
 
     while True:
@@ -19,7 +21,7 @@ def sawtooth_generator(roc: float = 10.0, max_val: float = 20.0):
         model.step(dt)
         # print(f"{dt=}, {model.val=} {t=}")
         if model.val >= max_val:
-            model.val = 0.0
+            model.val = -max_val
 
         t = time.time()
         yield model.val  # Yield the current value
