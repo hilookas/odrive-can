@@ -22,10 +22,11 @@ Use odrive motion controller with CAN inteface
     --help  Show this message and exit.
 
     Commands:
+    backup   Backup config to config folder
+    demo     demonstration of control modes
     info     Print package info
     inspect  Inspect and decode ODrive CAN messages
     mock     Mock ODrive CAN interface
-
 
 ## Quick start
 
