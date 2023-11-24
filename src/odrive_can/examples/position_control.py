@@ -12,13 +12,12 @@ from odrive_can.tools import UDP_Client
 from odrive_can.setpoints import sawtooth_generator
 
 SETTLE_TIME = 5.0  # settle time in [s]
-SETPOINT_DELAY = 0.1  # setpoint update delay in [s]
 ROC = 2.0  # rate of change of setpoint in [units/s]
 
 log = logging.getLogger("pos_ctl")
 udp = UDP_Client()
 
-setpoint: float = 0.0
+setpoint: float = 20.0
 
 
 def position_callback(data):
@@ -42,9 +41,6 @@ async def main_loop(drv: ODriveCAN):
     drv.clear_errors()
     drv.check_errors()
 
-    drv.set_axis_state("CLOSED_LOOP_CONTROL")
-    await asyncio.sleep(0.5)  #  wait for heartbeat update
-
     # set gain
     drv.set_pos_gain(1.0)
 
@@ -52,21 +48,23 @@ async def main_loop(drv: ODriveCAN):
     drv.set_linear_count(0)
 
     # set position control mode
+    drv.set_axis_state("CLOSED_LOOP_CONTROL")
+    await asyncio.sleep(0.5)  #  wait for heartbeat update
+    drv.check_errors()
     drv.set_controller_mode("POSITION_CONTROL", "POS_FILTER")
 
     drv.set_input_pos(setpoint)
     await asyncio.sleep(2)
 
-    generator = sawtooth_generator(roc=ROC, max_val=100.0)
-
     idx = 0
     try:
         while True:
             drv.check_errors()
-            setpoint = next(generator)
+
             drv.set_input_pos(setpoint)
             idx += 1
-            await asyncio.sleep(SETPOINT_DELAY)
+            await asyncio.sleep(SETTLE_TIME)
+            setpoint = -setpoint
 
     except KeyboardInterrupt:
         log.info("Stopping")

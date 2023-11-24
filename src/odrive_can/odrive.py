@@ -14,6 +14,7 @@ from typing import Callable, Optional
 import can
 
 from odrive_can import extract_ids, get_dbc
+from odrive_can.interface import DbcInterface
 from odrive_can.timer import Timer
 
 # message timeout in seconds
@@ -59,7 +60,7 @@ class CanMsg:
         return f"{self.name}: {self.data}"
 
 
-class ODriveCAN:
+class ODriveCAN(DbcInterface):
     """odrive CAN driver"""
 
     def __init__(
@@ -153,10 +154,6 @@ class ODriveCAN:
         response = self._messages.get(msg_name)
         return response.data if response else {}
 
-    async def get_bus_voltage_current(self) -> dict:
-        """request bus voltage and current"""
-        return await self.request("Get_Bus_Voltage_Current")
-
     @property
     def axis_state(self) -> str:
         """get axis state"""
@@ -209,6 +206,7 @@ class ODriveCAN:
         self._recieve_thread.start()
 
         asyncio.create_task(self._message_handler())
+        await asyncio.sleep(0.5)  # wait for first heartbeat
 
     def stop(self):
         """stop driver"""
