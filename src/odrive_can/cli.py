@@ -18,7 +18,7 @@ from odrive_can import LOG_FORMAT, TIME_FORMAT
 log = logging.getLogger()
 coloredlogs.install(level="INFO", fmt=LOG_FORMAT, datefmt=TIME_FORMAT)
 
-# pylint: disable=import-outside-toplevel, unused-argument
+# pylint: disable=import-outside-toplevel, unused-argument, broad-except
 
 # ------------------ helpers
 
@@ -137,13 +137,19 @@ def backup(output_file):
 @click.option("--axis-id", default=0, help="ODrive axis ID")
 @click.option("--interface", default="slcan0", help="CAN interface")
 @click.option("--debug", is_flag=True, help="Turn on debugging")
+@click.option(
+    "--input-mode",
+    type=click.Choice(["POS_FILTER", "TRAP_TRAJ"], case_sensitive=False),
+    default="POS_FILTER",
+    help="Input mode (POS_FILTER or TRAP_TRAJ)",
+)
 @common_cli
-def position(axis_id, interface, debug):
+def position(axis_id, interface, debug, input_mode):
     """Position control demo"""
     from .examples.position_control import main
 
     try:
-        main(axis_id=axis_id, interface=interface)
+        main(axis_id=axis_id, interface=interface, input_mode=input_mode)
     except Exception as e:
         log.error(e)
 

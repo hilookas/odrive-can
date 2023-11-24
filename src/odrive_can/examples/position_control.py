@@ -9,15 +9,14 @@ import asyncio
 import logging
 from odrive_can.odrive import ODriveCAN
 from odrive_can.tools import UDP_Client
-from odrive_can.setpoints import sawtooth_generator
 
 SETTLE_TIME = 5.0  # settle time in [s]
-ROC = 2.0  # rate of change of setpoint in [units/s]
+
 
 log = logging.getLogger("pos_ctl")
 udp = UDP_Client()
 
-setpoint: float = 20.0
+setpoint: float = 40.0
 
 
 def position_callback(data):
@@ -26,7 +25,27 @@ def position_callback(data):
     udp.send(data)
 
 
-async def main_loop(drv: ODriveCAN):
+async def configure_controller(drv: ODriveCAN, input_mode: str = "POS_FILTER"):
+    """setup control parameters"""
+
+    # set parameters
+    drv.set_pos_gain(1.0)
+
+    drv.set_traj_vel_limit(40.0)
+    drv.set_traj_accel_limits(40.0, 40.0)
+
+    # reset encoder
+    drv.set_linear_count(0)
+
+    drv.set_controller_mode("POSITION_CONTROL", input_mode)
+
+    # set position control mode
+    drv.set_axis_state("CLOSED_LOOP_CONTROL")
+    await asyncio.sleep(0.5)  #  wait for heartbeat update
+    drv.check_errors()
+
+
+async def main_loop(drv: ODriveCAN, input_mode: str = "POS_FILTER"):
     """position demo"""
 
     global setpoint  # pylint: disable=global-statement
@@ -41,17 +60,9 @@ async def main_loop(drv: ODriveCAN):
     drv.clear_errors()
     drv.check_errors()
 
-    # set gain
-    drv.set_pos_gain(1.0)
+    await configure_controller(drv, input_mode)
 
-    # reset encoder
-    drv.set_linear_count(0)
-
-    # set position control mode
-    drv.set_axis_state("CLOSED_LOOP_CONTROL")
-    await asyncio.sleep(0.5)  #  wait for heartbeat update
-    drv.check_errors()
-    drv.set_controller_mode("POSITION_CONTROL", "POS_FILTER")
+    # start running
 
     drv.set_input_pos(setpoint)
     await asyncio.sleep(2)
@@ -73,12 +84,12 @@ async def main_loop(drv: ODriveCAN):
         await asyncio.sleep(0.5)
 
 
-def main(axis_id: int, interface: str):
+def main(axis_id: int, interface: str, input_mode: str):
     print("Starting position control demo, press CTRL+C to exit")
     drv = ODriveCAN(axis_id, interface)
 
     try:
-        asyncio.run(main_loop(drv))
+        asyncio.run(main_loop(drv, input_mode))
     except KeyboardInterrupt:
         log.info("KeyboardInterrupt")
 
