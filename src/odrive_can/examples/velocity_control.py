@@ -40,7 +40,7 @@ async def configure_controller(drv: ODriveCAN):
     drv.check_errors()
 
 
-async def main_loop(drv: ODriveCAN, input_mode: str = "POS_FILTER"):
+async def main_loop(drv: ODriveCAN):
     """position demo"""
 
     global setpoint  # pylint: disable=global-statement
