@@ -53,8 +53,58 @@ def get_method(message: cantools.db.Message) -> str:
     return code
 
 
+def set_method(message: cantools.db.Message) -> str:
+    """Generate a set method string from a CAN message."""
+    _, method_name, _ = split_message_name(message.name)
+
+    # Extracting signal names and types
+    params = []
+    param_dict = {}
+    for signal in message.signals:
+        signal_name = signal.name
+        param_type = "int"
+        if signal.is_float:
+            param_type = "float"
+        elif isinstance(signal.choices, dict):
+            param_type = "str"  # Enumerated signal
+
+        params.append(f"{signal_name.lower()}: {param_type}")
+        param_dict[signal_name] = signal_name.lower()
+
+    params_str = ", ".join(params)
+    params_dict_str = ", ".join([f'"{k}": {v}' for k, v in param_dict.items()])
+
+    # Template for the set method
+    set_template = f"""
+    async def {method_name.lower()}(self, {params_str}):
+        self._log.info(f"Setting {method_name.lower()}")
+        await self._send_message("{method_name}", {{{{{params_dict_str}}}}})\n"""
+
+    return set_template.format(
+        method_name=method_name,
+        message_name=message.name,
+    )
+
+
 def dbc_to_code(db, dest):
     """create interface from dbc database"""
+
+    get_methods = []
+    set_methods = []
+
+    for message in db.messages[:28]:
+        # split message name by first underscore
+
+        print(f"Processing {message.name}")
+        _, _, prefix = split_message_name(message.name)
+
+        if prefix == "get":
+            code = get_method(message)
+            get_methods.append(code)
+
+        elif prefix == "set":
+            code = set_method(message)
+            set_methods.append(code)
 
     print(f"Generating {dest}")
     # Open the Markdown file for writing
@@ -63,16 +113,11 @@ def dbc_to_code(db, dest):
         code = HEADER.format(script_name=script_name)
         output_file.write(code)
 
-        for message in db.messages[:28]:
-            # split message name by first underscore
+        for method in get_methods:
+            output_file.write(method)
 
-            print(f"Processing {message.name}")
-            _, _, prefix = split_message_name(message.name)
-
-            if prefix == "get":
-                code = get_method(message)
-                print(code)
-                output_file.write(code)
+        for method in set_methods:
+            output_file.write(method)
 
 
 db = get_dbc("odrive-cansimple-0.5.6")

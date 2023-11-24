@@ -37,3 +37,55 @@ class DbcInterface(ABC):
 
     async def get_controller_error(self) -> dict:
         return await self.request("Get_Controller_Error")
+
+    async def set_axis_node_id(self, axis_node_id: int):
+        self._log.info(f"Setting set_axis_node_id")
+        await self._send_message("Set_Axis_Node_ID", {"Axis_Node_ID": axis_node_id})
+
+    async def set_axis_state(self, axis_requested_state: str):
+        self._log.info(f"Setting set_axis_state")
+        await self._send_message("Set_Axis_State", {"Axis_Requested_State": axis_requested_state})
+
+    async def set_controller_mode(self, control_mode: str, input_mode: str):
+        self._log.info(f"Setting set_controller_mode")
+        await self._send_message("Set_Controller_Mode", {"Control_Mode": control_mode, "Input_Mode": input_mode})
+
+    async def set_input_pos(self, input_pos: float, vel_ff: int, torque_ff: int):
+        self._log.info(f"Setting set_input_pos")
+        await self._send_message("Set_Input_Pos", {"Input_Pos": input_pos, "Vel_FF": vel_ff, "Torque_FF": torque_ff})
+
+    async def set_input_vel(self, input_vel: float, input_torque_ff: float):
+        self._log.info(f"Setting set_input_vel")
+        await self._send_message("Set_Input_Vel", {"Input_Vel": input_vel, "Input_Torque_FF": input_torque_ff})
+
+    async def set_input_torque(self, input_torque: float):
+        self._log.info(f"Setting set_input_torque")
+        await self._send_message("Set_Input_Torque", {"Input_Torque": input_torque})
+
+    async def set_limits(self, velocity_limit: float, current_limit: float):
+        self._log.info(f"Setting set_limits")
+        await self._send_message("Set_Limits", {"Velocity_Limit": velocity_limit, "Current_Limit": current_limit})
+
+    async def set_traj_vel_limit(self, traj_vel_limit: float):
+        self._log.info(f"Setting set_traj_vel_limit")
+        await self._send_message("Set_Traj_Vel_Limit", {"Traj_Vel_Limit": traj_vel_limit})
+
+    async def set_traj_accel_limits(self, traj_accel_limit: float, traj_decel_limit: float):
+        self._log.info(f"Setting set_traj_accel_limits")
+        await self._send_message("Set_Traj_Accel_Limits", {"Traj_Accel_Limit": traj_accel_limit, "Traj_Decel_Limit": traj_decel_limit})
+
+    async def set_traj_inertia(self, traj_inertia: float):
+        self._log.info(f"Setting set_traj_inertia")
+        await self._send_message("Set_Traj_Inertia", {"Traj_Inertia": traj_inertia})
+
+    async def set_linear_count(self, position: int):
+        self._log.info(f"Setting set_linear_count")
+        await self._send_message("Set_Linear_Count", {"Position": position})
+
+    async def set_pos_gain(self, pos_gain: float):
+        self._log.info(f"Setting set_pos_gain")
+        await self._send_message("Set_Pos_Gain", {"Pos_Gain": pos_gain})
+
+    async def set_vel_gains(self, vel_gain: float, vel_integrator_gain: float):
+        self._log.info(f"Setting set_vel_gains")
+        await self._send_message("Set_Vel_Gains", {"Vel_Gain": vel_gain, "Vel_Integrator_Gain": vel_integrator_gain})
