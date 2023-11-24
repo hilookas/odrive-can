@@ -125,7 +125,34 @@ class ODriveCAN(DbcInterface):
         """allow message by command ID"""
         self._ignored_messages.remove(cmd_id.value)
 
-    async def request(self, msg_name: str, timeout: float = 0.5) -> dict:
+    @property
+    def axis_state(self) -> str:
+        """get axis state"""
+        return self._messages["Heartbeat"].data["Axis_State"]
+
+    async def start(self):
+        """start driver"""
+        self._log.info("starting driver")
+        loop = asyncio.get_running_loop()  # Get the current asyncio event loop
+        self._recieve_thread = threading.Thread(
+            target=self._can_reader_thread, args=(loop,), daemon=True
+        )
+        self._recieve_thread.start()
+
+        asyncio.create_task(self._message_handler())
+        await asyncio.sleep(0.5)  # wait for first heartbeat
+
+    def stop(self):
+        """stop driver"""
+        self._log.info("stopping driver")
+        self.set_axis_state("IDLE")
+
+        self._running = False
+
+        self._recieve_thread.join()
+
+    # ------------------- private -------------------
+    async def _request(self, msg_name: str, timeout: float = 0.5) -> dict:
         """Send an RTR message and wait for the response with a timeout."""
 
         # check if another request is in progress
@@ -154,75 +181,47 @@ class ODriveCAN(DbcInterface):
         response = self._messages.get(msg_name)
         return response.data if response else {}
 
-    @property
-    def axis_state(self) -> str:
-        """get axis state"""
-        return self._messages["Heartbeat"].data["Axis_State"]
-
-    def set_axis_state(self, state: str | int):
-        """set axis state"""
-        self._log.info(f"setting axis state to {state}")
-        self._send_message("Set_Axis_State", {"Axis_Requested_State": state})
-
-    def set_linear_count(self, count: int = 0):
-        """set linear count"""
-        self._log.info(f"setting count to {count}")
-        self._send_message("Set_Linear_Count", {"Position": count})
-
-    def set_controller_mode(self, control_mode: int | str, input_mode: int | str):
-        """set controller mode"""
-        self._log.info(f"setting controller mode to {control_mode}, {input_mode}")
-        self._send_message(
-            "Set_Controller_Mode",
-            {"Control_Mode": control_mode, "Input_Mode": input_mode},
-        )
-
-    def set_pos_gain(self, gain: float):
-        """set position gain"""
-        self._log.info(f"setting position gain to {gain}")
-        self._send_message("Set_Pos_Gain", {"Pos_Gain": gain})
-
-    def set_input_pos(self, pos: float):
-        """set input position"""
-        self._log.debug(f"setting input position to {pos}")
-        self._send_message("Set_Input_Pos", {"Input_Pos": pos})
-
-    def clear_errors(self):
-        """clear errors"""
-        self._log.info("clearing errors")
-        self._send_message("Clear_Errors")
-
-    def reboot(self):
-        """request reboot"""
-        self._send_message("Reboot")
-
-    async def start(self):
-        """start driver"""
-        self._log.info("starting driver")
-        loop = asyncio.get_running_loop()  # Get the current asyncio event loop
-        self._recieve_thread = threading.Thread(
-            target=self._can_reader_thread, args=(loop,), daemon=True
-        )
-        self._recieve_thread.start()
-
-        asyncio.create_task(self._message_handler())
-        await asyncio.sleep(0.5)  # wait for first heartbeat
-
-    def stop(self):
-        """stop driver"""
-        self._log.info("stopping driver")
-        self.set_axis_state("IDLE")
-
-        self._running = False
-
-        self._recieve_thread.join()
-
-    # ------------------- private -------------------
     def _clear_request(self):
         """clear request"""
         self._log.debug("clearing request")
         self._response_event.clear()
         self._request_id = 0
+
+    def _send_message(
+        self, msg_name: str, msg_dict: Optional[dict] = None, rtr: bool = False
+    ):
+        """send message by name. If no msg_dict is provided, use zeros
+        msg_name is the name of the message without the "AxisX_" prefix
+        """
+        msg = dbc.get_message_by_name(f"Axis{self._axis_id}_{msg_name}")
+        if rtr:
+            # For RTR messages, don't specify the data field
+            msg = can.Message(
+                arbitration_id=msg.frame_id,
+                is_extended_id=False,
+                is_remote_frame=True,
+            )
+            # set request id for response
+            self._request_id = msg.arbitration_id
+        else:
+            full_msg_dict = {signal.name: 0 for signal in msg.signals}
+            if msg_dict is not None:
+                full_msg_dict.update(msg_dict)
+
+            data = msg.encode(full_msg_dict)
+            msg = can.Message(
+                arbitration_id=msg.frame_id,
+                data=data,
+                is_extended_id=False,
+            )
+        try:
+            self._bus.send(msg)  # type: ignore
+        except can.CanError as error:
+            self._log.error(error)
+
+    def __del__(self):
+        """destructor"""
+        self._bus.shutdown()
 
     def _can_reader_thread(self, loop):
         """receive can messages, filter and put them into the queue"""
@@ -290,39 +289,3 @@ class ODriveCAN(DbcInterface):
                 self._log.info(f"Raw: {msg}")
 
         self._log.debug("message handler stopped")
-
-    def _send_message(
-        self, msg_name: str, msg_dict: Optional[dict] = None, rtr: bool = False
-    ):
-        """send message by name. If no msg_dict is provided, use zeros
-        msg_name is the name of the message without the "AxisX_" prefix
-        """
-        msg = dbc.get_message_by_name(f"Axis{self._axis_id}_{msg_name}")
-        if rtr:
-            # For RTR messages, don't specify the data field
-            msg = can.Message(
-                arbitration_id=msg.frame_id,
-                is_extended_id=False,
-                is_remote_frame=True,
-            )
-            # set request id for response
-            self._request_id = msg.arbitration_id
-        else:
-            full_msg_dict = {signal.name: 0 for signal in msg.signals}
-            if msg_dict is not None:
-                full_msg_dict.update(msg_dict)
-
-            data = msg.encode(full_msg_dict)
-            msg = can.Message(
-                arbitration_id=msg.frame_id,
-                data=data,
-                is_extended_id=False,
-            )
-        try:
-            self._bus.send(msg)  # type: ignore
-        except can.CanError as error:
-            self._log.error(error)
-
-    def __del__(self):
-        """destructor"""
-        self._bus.shutdown()

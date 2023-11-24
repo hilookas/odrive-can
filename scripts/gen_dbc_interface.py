@@ -76,9 +76,8 @@ def set_method(message: cantools.db.Message) -> str:
 
     # Template for the set method
     set_template = f"""
-    async def {method_name.lower()}(self, {params_str}):
-        self._log.info(f"Setting {method_name.lower()}")
-        await self._send_message("{method_name}", {{{{{params_dict_str}}}}})\n"""
+    def {method_name.lower()}(self, {params_str}):
+        self._send_message("{method_name}", {{{{{params_dict_str}}}}})\n"""
 
     return set_template.format(
         method_name=method_name,
