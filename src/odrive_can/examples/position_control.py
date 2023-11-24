@@ -84,7 +84,7 @@ async def main_loop(drv: ODriveCAN, input_mode: str = "POS_FILTER"):
         await asyncio.sleep(0.5)
 
 
-def main(axis_id: int, interface: str, input_mode: str):
+def main(axis_id: int, interface: str, input_mode: str = "POS_FILTER"):
     print("Starting position control demo, press CTRL+C to exit")
     drv = ODriveCAN(axis_id, interface)
 
