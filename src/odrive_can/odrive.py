@@ -87,7 +87,7 @@ class ODriveCAN(DbcInterface):
 
         self._ignored_messages: set = set()  # message ids to ignore
 
-        self._response_event = asyncio.Event()  # event to signal response to rtr
+        self._response_queue: asyncio.Queue = asyncio.Queue(1)  # response queue
         self._request_id: int = 0  # set to msg.arbitration_id by _send_message
 
         # called on incoming position message
@@ -162,7 +162,7 @@ class ODriveCAN(DbcInterface):
         """Send an RTR message and wait for the response with a timeout."""
 
         # check if another request is in progress
-        if self._response_event.is_set():
+        if self._request_id != 0:
             raise RuntimeError("another request is already in progress")
 
         # self._response_event.clear()  # Reset the event before waiting
@@ -170,28 +170,21 @@ class ODriveCAN(DbcInterface):
         # Send the request
         self._send_message(msg_name, rtr=True)
 
-        self._log.debug(f"{self._response_event.is_set()=} {self._request_id=}")
-
+        result = {}
         try:
             # Wait for the response with a timeout
-            await asyncio.wait_for(self._response_event.wait(), timeout)
+            msg = await asyncio.wait_for(self._response_queue.get(), timeout)
             self._log.debug("awaited response")
+            result = msg.data
         except asyncio.TimeoutError as error:
             # Handle the timeout
             self._log.error(f"Timeout waiting for response to {msg_name}")
             raise TimeoutError(f"Timeout waiting for response to {msg_name}") from error
 
-        self._clear_request()
+        finally:
+            self._request_id = 0  # Reset the request ID
 
-        # Process and return the response
-        response = self._messages.get(msg_name)
-        return response.data if response else {}
-
-    def _clear_request(self):
-        """clear request"""
-        self._log.debug("clearing request")
-        self._response_event.clear()
-        self._request_id = 0
+        return result
 
     def _send_message(
         self, msg_name: str, msg_dict: Optional[dict] = None, rtr: bool = False
@@ -280,7 +273,7 @@ class ODriveCAN(DbcInterface):
                 # check if this is a response to a request
                 if msg.arbitration_id == self._request_id:
                     self._log.debug("response received")
-                    self._response_event.set()
+                    await self._response_queue.put(can_msg)
 
                 # call position callback
                 if cmd_id == CommandId.ENCODER_ESTIMATE.value:
