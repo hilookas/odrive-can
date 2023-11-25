@@ -145,8 +145,7 @@ class ODriveCAN(DbcInterface):
     def stop(self):
         """stop driver"""
         self._log.info("stopping driver")
-        self.set_axis_state("IDLE")
-
+        self._send_message("Set_Axis_State", {"Axis_Requested_State": "IDLE"})
         self._running = False
 
         self._recieve_thread.join()
