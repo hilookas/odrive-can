@@ -18,7 +18,8 @@ from odrive_can.interface import DbcInterface
 from odrive_can.timer import Timer
 
 # message timeout in seconds
-MESSAGE_TIMEOUT = 0.2
+CAN_TIMEOUT = 0.5  # wait for next message
+MESSAGE_TIMEOUT = 0.2  # message expiration time
 CUSTOM_TIMEOUTS = {"Heartbeat": 0.5}
 
 
@@ -140,7 +141,10 @@ class ODriveCAN(DbcInterface):
         self._recieve_thread.start()
 
         asyncio.create_task(self._message_handler())
-        await asyncio.sleep(0.5)  # wait for first heartbeat
+
+        # wait for first heartbeat
+        while "Heartbeat" not in self._messages:
+            await asyncio.sleep(0.1)
 
     def stop(self):
         """stop driver"""
@@ -220,7 +224,8 @@ class ODriveCAN(DbcInterface):
 
     def __del__(self):
         """destructor"""
-        self._bus.shutdown()
+        if hasattr(self, "_bus"):
+            self._bus.shutdown()
 
     def _can_reader_thread(self, loop):
         """receive can messages, filter and put them into the queue"""
