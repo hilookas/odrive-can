@@ -13,12 +13,21 @@ TIMEOUT = 1.0
 
 def receive_and_decode(bus):
     dbc = odrive_can.get_dbc()
+    nr_timeouts = 0
     idx = 0  # message index
     while True:
         msg = bus.recv(TIMEOUT)  # type: ignore
 
         if msg is None:
-            raise TimeoutError("Timeout occurred, no message.")
+            print(".", end="", flush=True)
+            nr_timeouts += 1
+            continue
+            # raise TimeoutError("Timeout occurred, no message.")
+
+        # start new line if there were timeouts
+        if nr_timeouts > 0:
+            print("\n")
+            nr_timeouts = 0
 
         axis_id = odrive_can.get_axis_id(msg)
 
