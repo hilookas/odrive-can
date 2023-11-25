@@ -16,7 +16,7 @@ import coloredlogs  # type: ignore
 from odrive_can import LOG_FORMAT, TIME_FORMAT, get_dbc, get_axis_id
 from odrive_can.linear_model import LinearModel
 
-# pylint: disable=abstract-class-instantiated, unnecessary-lambda
+# pylint: disable=abstract-class-instantiated, unnecessary-lambda, broad-except
 
 log = logging.getLogger("odrive.mock")
 
@@ -27,14 +27,14 @@ class OdriveMock:
     def __init__(self):
         self.model = LinearModel(roc=10.0)
 
-        self.axis_state = "AXIS_STATE_UNDEFINED"
+        self.axis_state = "IDLE"
         self.input_mode = "INACTIVE"
         self.controller_mode = "VELOCITY_CONTROL"
 
-    def set_axis_state(self, state: str):
+    async def set_axis_state(self, state: str):
         """set axis state"""
         log.info(f"Setting axis state to {state}")
-        time.sleep(0.5)
+        await asyncio.sleep(0.5)
         self.axis_state = state
         log.info(f"Axis state is now {self.axis_state}")
 
@@ -54,9 +54,6 @@ class ODriveCANMock:
         self.notifier = can.Notifier(self.bus, [self.can_reader])
 
         self.odrive = OdriveMock()
-
-        # mapping of commands to functions
-        self._cmd_map = {"Set_Axis_State": lambda x: self.odrive.set_axis_state(x)}
 
     async def message_handler(self):
         """handle received message"""
@@ -87,7 +84,9 @@ class ODriveCANMock:
 
                 log.info(f"Set: {cmd}: {data}")
 
-                # set paramter
+                # Execute commands
+                if cmd == "Set_Axis_State":
+                    await self.odrive.set_axis_state(data["Axis_Requested_State"])
 
             except KeyError:
                 # If the message ID is not in the DBC file, print the raw message
@@ -133,7 +132,7 @@ class ODriveCANMock:
             data = heartbeat_msg.encode(
                 {
                     "Axis_Error": 0,
-                    "Axis_State": "IDLE",
+                    "Axis_State": self.odrive.axis_state,
                     "Motor_Error_Flag": 0,
                     "Encoder_Error_Flag": 0,
                     "Controller_Error_Flag": 0,
