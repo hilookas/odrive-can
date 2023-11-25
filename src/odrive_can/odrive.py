@@ -74,6 +74,10 @@ class ODriveCAN(DbcInterface):
         self._axis_id = axis_id
 
         self._bus = can.interface.Bus(channel=interface, interface=interface_type)
+
+        # tried to use notifier, but it does not work well with asyncio
+        # did not succeed in using can.AsyncBufferedReader either, latest state can be found
+        # on `remove-trhead` branch. For now, use a separate thread to read messages
         # self._notifier = can.Notifier(self._bus, [self._message_handler])
 
         self._recieve_thread: Optional[threading.Thread] = None
@@ -84,7 +88,7 @@ class ODriveCAN(DbcInterface):
         self._ignored_messages: set = set()  # message ids to ignore
 
         self._response_event = asyncio.Event()  # event to signal response to rtr
-        self._request_id: int = 0  # request id for rtr
+        self._request_id: int = 0  # set to msg.arbitration_id by _send_message
 
         # called on incoming position message
         self.position_callback: Optional[Callable] = None
