@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+# pylint: disable=broad-except, redefined-outer-name
 import asyncio
 import logging
 import argparse
@@ -15,8 +15,8 @@ coloredlogs.install(level="INFO", fmt=LOG_FORMAT, datefmt=TIME_FORMAT)
 
 def parse_args():
     parser = argparse.ArgumentParser(description="ODrive CAN test script")
-    parser.add_argument("--axis-id", type=int, default=1, help="ODrive axis ID")
-    parser.add_argument("--interface", type=str, default="slcan0", help="CAN interface")
+    parser.add_argument("--axis-id", type=int, default=0, help="ODrive axis ID")
+    parser.add_argument("--interface", type=str, default="vcan0", help="CAN interface")
     return parser.parse_args()
 
 
@@ -30,10 +30,10 @@ async def request(drv: ODriveCAN, method: str):
 
 
 async def main(args):
-    drv = ODriveCAN(axis_id=args.axis_id, interface=args.interface)
-    await drv.start()
-
     try:
+        drv = ODriveCAN(axis_id=args.axis_id, interface=args.interface)
+        await drv.start()
+
         drv.check_alive()
         drv.check_errors()
 
@@ -70,3 +70,5 @@ if __name__ == "__main__":
         asyncio.run(main(args))
     except KeyboardInterrupt:
         log.info("KeyboardInterrupt")
+    except Exception as e:
+        log.error(e)
