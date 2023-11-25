@@ -12,11 +12,15 @@ from odrive_can.timer import timeit
 log = logging.getLogger()
 coloredlogs.install(level="INFO", fmt=LOG_FORMAT, datefmt=TIME_FORMAT)
 
+# set can logger to INFO
+logger_can = logging.getLogger("can").setLevel(logging.INFO)  # type: ignore
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="ODrive CAN test script")
     parser.add_argument("--axis-id", type=int, default=0, help="ODrive axis ID")
     parser.add_argument("--interface", type=str, default="vcan0", help="CAN interface")
+    parser.add_argument("--debug", action="store_true", help="Enable debug logging")
     return parser.parse_args()
 
 
@@ -30,6 +34,9 @@ async def request(drv: ODriveCAN, method: str):
 
 
 async def main(args):
+    if args.debug:
+        coloredlogs.set_level("DEBUG")
+
     try:
         drv = ODriveCAN(axis_id=args.axis_id, interface=args.interface)
         await drv.start()
