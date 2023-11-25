@@ -1,33 +1,37 @@
-# Not a pytest. Just a script to test the hardware.
+#!/usr/bin/env python3
 
 import asyncio
 import logging
-
-import coloredlogs  # type: ignore
+import argparse
+import coloredlogs
 
 from odrive_can import LOG_FORMAT, TIME_FORMAT
-from odrive_can.odrive import CommandId, ODriveCAN
+from odrive_can.odrive import ODriveCAN
 from odrive_can.timer import timeit
 
-log = logging.getLogger()
-coloredlogs.install(level="INFO", fmt=LOG_FORMAT, datefmt=TIME_FORMAT)
 
-
-AXIS_ID = 1
-INTERFACE = "slcan0"
+def parse_args():
+    parser = argparse.ArgumentParser(description="ODrive CAN test script")
+    parser.add_argument("--axis-id", type=int, default=1, help="ODrive axis ID")
+    parser.add_argument("--interface", type=str, default="slcan0", help="CAN interface")
+    return parser.parse_args()
 
 
 @timeit
 async def request(drv: ODriveCAN, method: str):
     """request data from ODrive"""
+    log = logging.getLogger()
     log.info(f"Requesting {method}")
     fcn = getattr(drv, method)
     data = await fcn()
     log.info(f"{data=}")
 
 
-async def main():
-    drv = ODriveCAN(axis_id=AXIS_ID, interface=INTERFACE)
+async def main(args):
+    log = logging.getLogger()
+    coloredlogs.install(level="INFO", fmt=LOG_FORMAT, datefmt=TIME_FORMAT)
+
+    drv = ODriveCAN(axis_id=args.axis_id, interface=args.interface)
     await drv.start()
 
     try:
@@ -56,4 +60,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    args = parse_args()
+    asyncio.run(main(args))
