@@ -40,8 +40,7 @@ async def configure_controller(drv: ODriveCAN, input_mode: str = "POS_FILTER"):
     drv.set_controller_mode("POSITION_CONTROL", input_mode)
 
     # set position control mode
-    drv.set_axis_state("CLOSED_LOOP_CONTROL")
-    await asyncio.sleep(0.5)  #  wait for heartbeat update
+    await drv.set_axis_state("CLOSED_LOOP_CONTROL")
     drv.check_errors()
 
 

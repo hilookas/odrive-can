@@ -35,8 +35,7 @@ async def configure_controller(drv: ODriveCAN):
     drv.set_controller_mode("VELOCITY_CONTROL", "VEL_RAMP")
 
     # set position control mode
-    drv.set_axis_state("CLOSED_LOOP_CONTROL")
-    await asyncio.sleep(0.5)  #  wait for heartbeat update
+    await drv.set_axis_state("CLOSED_LOOP_CONTROL")
     drv.check_errors()
 
 
