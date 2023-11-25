@@ -3,11 +3,14 @@
 import asyncio
 import logging
 import argparse
-import coloredlogs
+import coloredlogs  # type: ignore
 
 from odrive_can import LOG_FORMAT, TIME_FORMAT
 from odrive_can.odrive import ODriveCAN
 from odrive_can.timer import timeit
+
+log = logging.getLogger()
+coloredlogs.install(level="INFO", fmt=LOG_FORMAT, datefmt=TIME_FORMAT)
 
 
 def parse_args():
@@ -20,7 +23,6 @@ def parse_args():
 @timeit
 async def request(drv: ODriveCAN, method: str):
     """request data from ODrive"""
-    log = logging.getLogger()
     log.info(f"Requesting {method}")
     fcn = getattr(drv, method)
     data = await fcn()
@@ -28,9 +30,6 @@ async def request(drv: ODriveCAN, method: str):
 
 
 async def main(args):
-    log = logging.getLogger()
-    coloredlogs.install(level="INFO", fmt=LOG_FORMAT, datefmt=TIME_FORMAT)
-
     drv = ODriveCAN(axis_id=args.axis_id, interface=args.interface)
     await drv.start()
 
@@ -52,6 +51,12 @@ async def main(args):
         ]:
             await request(drv, param)
 
+        # set velocity control mode
+        log.info("Setting velocity control mode")
+        await drv.set_axis_state("CLOSED_LOOP_CONTROL")
+        log.info(f"Currrent axis state: {drv.axis_state}")
+        await asyncio.sleep(1)
+
     except Exception as e:  # pylint: disable=broad-except
         log.error(e)
     finally:
@@ -61,4 +66,7 @@ async def main(args):
 
 if __name__ == "__main__":
     args = parse_args()
-    asyncio.run(main(args))
+    try:
+        asyncio.run(main(args))
+    except KeyboardInterrupt:
+        log.info("KeyboardInterrupt")
