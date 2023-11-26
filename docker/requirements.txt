@@ -12,4 +12,5 @@ pre-commit
 pydantic
 pylint
 pytest
+pytest-mock
 python-can

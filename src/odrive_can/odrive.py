@@ -70,7 +70,6 @@ class ODriveCAN(DbcInterface):
         interface_type: str = "socketcan",
     ):
         self._log = logging.getLogger(f"odrive.{axis_id}")
-        self._log.info(f"Starting mock {axis_id=} , {interface=} , {interface_type=}")
         self._axis_id = axis_id
 
         self._bus = can.interface.Bus(channel=interface, interface=interface_type)
@@ -83,7 +82,7 @@ class ODriveCAN(DbcInterface):
         self._recieve_thread: Optional[threading.Thread] = None
         self._msg_queue: asyncio.Queue = asyncio.Queue()
 
-        self._messages: dict[str, CanMsg] = {}  # latest message for each type
+        self._last_heartbeat: Optional[CanMsg] = None
 
         self._ignored_messages: set = set()  # message ids to ignore
 
@@ -97,18 +96,18 @@ class ODriveCAN(DbcInterface):
 
     def check_alive(self):
         """check if axis is alive, rasie an exception if not"""
-        if "Heartbeat" not in self._messages:
+        if self._last_heartbeat is None:
             raise HeartbeatError("Error: No heartbeat message received.")
 
-        if self._messages["Heartbeat"].is_expired():
+        if self._last_heartbeat.is_expired():
             raise HeartbeatError("Error: Heartbeat message timeout.")
 
     def check_errors(self):
         """Check if axis is in error and raise an exception if so."""
-        if "Heartbeat" not in self._messages:
+        if self._last_heartbeat is None:
             raise HeartbeatError("Error: No heartbeat message received.")
 
-        msg = self._messages["Heartbeat"]
+        msg = self._last_heartbeat
 
         if msg.data["Axis_Error"] != "NONE":
             raise DriveError(f"Axis Error: {msg.data['Axis_Error']}")
@@ -132,11 +131,17 @@ class ODriveCAN(DbcInterface):
     @property
     def axis_state(self) -> str:
         """get axis state"""
-        return self._messages["Heartbeat"].data["Axis_State"]
+        if self._last_heartbeat is None:
+            raise HeartbeatError("Error: No heartbeat message received.")
+
+        return self._last_heartbeat.data["Axis_State"]
 
     async def start(self):
         """start driver"""
-        self._log.info("starting driver")
+        self._log.info(
+            f"Starting. axis_id={self._axis_id}, bus={self._bus.channel_info}"
+        )
+
         loop = asyncio.get_running_loop()  # Get the current asyncio event loop
         self._recieve_thread = threading.Thread(
             target=self._can_reader_thread, args=(loop,), daemon=True
@@ -146,8 +151,11 @@ class ODriveCAN(DbcInterface):
         asyncio.create_task(self._message_handler())
 
         # wait for first heartbeat
-        while "Heartbeat" not in self._messages:
+        self._log.info("waiting for first heartbeat")
+        while self._last_heartbeat is None:
             await asyncio.sleep(0.1)
+
+        self._log.info("started")
 
     def stop(self):
         """stop driver"""
@@ -241,6 +249,7 @@ class ODriveCAN(DbcInterface):
                 # Ignore messages that were requested to be ignored, this is used
                 # to increase performance especially for frequent encoder updates
                 if cmd_id in self._ignored_messages:
+                    self._log.debug(f"ignoring {cmd_id=}")
                     continue
 
                 # RTR messages are requests for data, they don't have a data payload
@@ -268,7 +277,6 @@ class ODriveCAN(DbcInterface):
             try:
                 # process message
                 can_msg = CanMsg(msg)
-                self._messages[can_msg.name] = can_msg
 
                 # check if this is a response to a request
                 if msg.arbitration_id == self._request_id:
@@ -280,12 +288,13 @@ class ODriveCAN(DbcInterface):
                     if self.position_callback is not None:
                         self.position_callback(can_msg.data)
 
-                # debug heartbeat
+                # handle heartbeat
                 if cmd_id == CommandId.HEARTBEAT.value:
                     self._log.debug(f"heartbeat: {can_msg.data}")
+                    self._last_heartbeat = can_msg
 
             except KeyError:
                 # If the message ID is not in the DBC file, print the raw message
-                self._log.info(f"Raw: {msg}")
+                self._log.warning(f"Unkown message: {msg}")
 
         self._log.debug("message handler stopped")

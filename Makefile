@@ -1,4 +1,4 @@
-.PHONY: install_pkg, clean, container, list, test, uml, serve_docs
+.PHONY:  clean, container, list,lint, test, uml
 
 SHELL := /bin/bash
 
@@ -16,14 +16,13 @@ clean:
 	rm -rf src/*.egg-info dist venv public public docs/uml
 	docker container prune -f
 
-install_pkg:
-	@echo "Installing package..."
-	pip install .
+
+lint:
+	pylint -E src
+	mypy src
 
 
 test:
-	pylint -E src
-	mypy src
 	coverage run -m pytest tests && coverage report -m
 
 
@@ -36,9 +35,6 @@ public: uml
 	# build html documentation
 	mkdocs build -d public
 
-serve_docs: uml
-	# serve html documentation
-	mkdocs serve -a 0.0.0.0:8000
 
 venv:
 	# create virtual environment
