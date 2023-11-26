@@ -25,17 +25,20 @@ def position_callback(data):
     udp.send(data)
 
 
-async def request_feedback(drv: ODriveCAN, delay=0.1):
+async def request_feedback(drv: ODriveCAN, delay=0.05):
     """request feedback"""
     while True:
         try:
             data1 = await drv.get_bus_voltage_current()
             data2 = await drv.get_encoder_estimates()
+            data3 = await drv.get_iq()
 
-            data = {**data1, **data2, "setpoint": setpoint}
+            data = {**data1, **data2, **data3, "setpoint": setpoint}
             udp.send(data)
         except asyncio.CancelledError:
             break
+        except TimeoutError:
+            log.warning("TimeoutError")
         await asyncio.sleep(delay)
 
 
