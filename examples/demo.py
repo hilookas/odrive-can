@@ -54,8 +54,7 @@ async def change_axis_state(drv: ODriveCAN):
     """change axis state to closed loop control"""
     # get curent axis state
     log.info(f"Axis state: {drv.axis_state}")
-    drv.set_axis_state("CLOSED_LOOP_CONTROL")
-    await asyncio.sleep(0.5)  #  wait for heartbeat update
+    await drv.set_axis_state("CLOSED_LOOP_CONTROL")
     log.info(f"Axis state: {drv.axis_state}")
 
 
@@ -111,7 +110,7 @@ async def main():
     drv.allow_message(CommandId.ENCODER_ESTIMATE)
 
     # reset encoder
-    drv.set_linear_count()
+    drv.set_linear_count(0)
     await asyncio.sleep(1.0)
 
     # run position control
