@@ -26,7 +26,7 @@ test:
 	coverage run -m pytest tests && coverage report -m
 
 
-uml: install_pkg
+uml:
 	# generage uml files
 	mkdir -p docs/uml/odrive_can
 	pyreverse src/odrive_can -o png -d docs/uml/odrive_can
