@@ -25,14 +25,30 @@ def position_callback(data):
     udp.send(data)
 
 
-async def configure_controller(drv: ODriveCAN, input_mode: str = "POS_FILTER"):
+async def request_feedback(drv: ODriveCAN, delay=0.1):
+    """request feedback"""
+    while True:
+        try:
+            data1 = await drv.get_bus_voltage_current()
+            data2 = await drv.get_encoder_estimates()
+
+            data = {**data1, **data2, "setpoint": setpoint}
+            udp.send(data)
+        except asyncio.CancelledError:
+            break
+        await asyncio.sleep(delay)
+
+
+async def configure_controller(
+    drv: ODriveCAN, input_mode: str = "POS_FILTER", accel: float = 120.0
+):
     """setup control parameters"""
 
     # set parameters
     drv.set_pos_gain(5.0)
 
     drv.set_traj_vel_limit(40.0)
-    drv.set_traj_accel_limits(40.0, 40.0)
+    drv.set_traj_accel_limits(accel, accel)
 
     # reset encoder
     drv.set_linear_count(0)
@@ -51,13 +67,18 @@ async def main_loop(drv: ODriveCAN, input_mode: str = "POS_FILTER"):
 
     log.info("-----------Running position control-----------------")
 
-    drv.position_callback = position_callback
+    # register callback. This is optional. We'll use direct requests instead
+    # drv.position_callback = position_callback
+
     await drv.start()
 
     await asyncio.sleep(0.5)
     drv.check_alive()
     drv.clear_errors()
     drv.check_errors()
+
+    # start feedback request
+    asyncio.create_task(request_feedback(drv))
 
     await configure_controller(drv, input_mode)
 
