@@ -50,14 +50,6 @@ async def get_bus_voltage_current(drv: ODriveCAN):
         await asyncio.sleep(0.1)
 
 
-async def change_axis_state(drv: ODriveCAN):
-    """change axis state to closed loop control"""
-    # get curent axis state
-    log.info(f"Axis state: {drv.axis_state}")
-    await drv.set_axis_state("CLOSED_LOOP_CONTROL")
-    log.info(f"Axis state: {drv.axis_state}")
-
-
 async def position_control(drv: ODriveCAN):
     """simple position control loop"""
 
@@ -95,7 +87,7 @@ async def main():
     # log some messages
     await asyncio.sleep(1.0)
 
-    await change_axis_state(drv)
+    await drv.set_axis_state("CLOSED_LOOP_CONTROL")
 
     # set log level to INFO
     coloredlogs.set_level(logging.INFO)
