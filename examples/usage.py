@@ -1,14 +1,18 @@
 import asyncio
 from odrive_can import ODriveCAN
+from odrive_can.tools import UDP_Client
 
 AXIS_ID = 1
 INTERFACE = "slcan0"
 SETPOINT = 50
 
+udp = UDP_Client()  # send data to UDP server for plotting
+
 
 def position_callback(data: dict):
     """called on position estimate"""
     print(data)
+    udp.send(data)
 
 
 async def main():
@@ -27,21 +31,23 @@ async def main():
     # set controller mode
     drv.set_controller_mode("POSITION_CONTROL", "POS_FILTER")
 
+    # reset encoder
+    drv.set_linear_count(0)
+
     # set axis state
     await drv.set_axis_state("CLOSED_LOOP_CONTROL")
 
     # set position gain
     drv.set_pos_gain(3.0)
 
-    # reset encoder
-    drv.set_linear_count(0)
-
-    for _ in range(4):
+    for _ in range(2):
         # setpoint
         drv.set_input_pos(SETPOINT)
         await asyncio.sleep(5.0)
         drv.set_input_pos(-SETPOINT)
         await asyncio.sleep(5.0)
+
+    drv.set_input_pos(0.0)
 
 
 asyncio.run(main())
