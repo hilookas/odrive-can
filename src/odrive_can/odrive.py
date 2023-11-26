@@ -13,9 +13,10 @@ from typing import Callable, Optional
 
 import can
 
-from odrive_can import extract_ids, get_dbc
 from odrive_can.interface import DbcInterface
 from odrive_can.timer import Timer
+from odrive_can.utils import extract_ids, get_dbc
+
 
 # message timeout in seconds
 MESSAGE_TIMEOUT = 1.0  # message expiration time & can timeout
