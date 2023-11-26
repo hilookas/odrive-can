@@ -37,10 +37,10 @@ setup(
     author_email="jev.kuznetsov@gmail.com",
     python_requires=">=3.8",
     classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "Natural Language :: English",
-        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
     description="Use odrive motion controller with CAN inteface",
     long_description=read("README.md"),
