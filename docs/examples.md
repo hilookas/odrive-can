@@ -3,36 +3,27 @@
 Code examples below are located in `examples` directory.
 
 
-
-## Talk to odrive
-
-```python
---8<-- "examples/send_drive_messages.py"
-```
-
-## Device simulation
-```python
---8<-- "examples/sim_can.py"
-```
-
-
-## Async CAN
-
-* see also: [python-can example](https://github.com/hardbyte/python-can/blob/develop/examples/asyncio_demo.py)
+## Basic usage
 
 ```python
---8<-- "examples/async_can.py"
+--8<-- "examples/usage.py"
 ```
 
-
-## Decode messages
-
-```python
---8<-- "examples/decode_can.py"
-```
 
 ## Driver demo
 
 ```python
 --8<-- "examples/demo.py"
+```
+
+## Position control
+
+```python
+--8<-- "src/odrive_can/examples/position_control.py"
+```
+
+## Velocity control
+
+```python
+--8<-- "src/odrive_can/examples/velocity_control.py"
 ```

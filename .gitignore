@@ -2,6 +2,7 @@ temp/
 
 # auto generated files
 docs/uml/
+public/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,4 +1,4 @@
-.PHONY:  clean, container, list,lint, test, uml
+.PHONY:  clean, container, list,lint, test,  serve_docs
 
 SHELL := /bin/bash
 
@@ -26,12 +26,9 @@ test:
 	coverage run -m pytest tests && coverage report -m
 
 
-uml:
-	# generage uml files
-	mkdir -p docs/uml/odrive_can
-	pyreverse src/odrive_can -o png -d docs/uml/odrive_can
 
-public: uml
+
+public:
 	# build html documentation
 	mkdocs build -d public
 
@@ -41,3 +38,10 @@ venv:
 	python3.12 -m venv venv
 	venv/bin/pip install -r docker/requirements.txt
 	venv/bin/pip install -e .
+
+serve_docs:
+	# serve html documentation
+	mkdocs serve -a 0.0.0.0:8000 -w README.md
+
+
+

@@ -23,7 +23,6 @@ nav:
   - examples.md
   - can_interface.md
   - development.md
-  - api_docs.md
   - changelog.md
 
 extra_css:
@@ -50,6 +49,7 @@ plugins:
           rendering:
             show_signature_annotations: true
             show_source: true
+            show_inherited_members: true
             show_submodules: true
             heading_level: 2
 
