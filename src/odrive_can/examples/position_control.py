@@ -19,6 +19,9 @@ udp = UDP_Client()
 setpoint: float = 40.0
 
 
+USE_FEEDBACK_CALLBACK = True
+
+
 def position_callback(data):
     """position callback, send data to UDP client"""
     data["setpoint"] = setpoint
@@ -70,9 +73,6 @@ async def main_loop(drv: ODriveCAN, input_mode: str = "POS_FILTER"):
 
     log.info("-----------Running position control-----------------")
 
-    # register callback. This is optional. We'll use direct requests instead
-    # drv.position_callback = position_callback
-
     await drv.start()
 
     await asyncio.sleep(0.5)
@@ -80,8 +80,11 @@ async def main_loop(drv: ODriveCAN, input_mode: str = "POS_FILTER"):
     drv.clear_errors()
     drv.check_errors()
 
-    # start feedback request
-    asyncio.create_task(request_feedback(drv))
+    if USE_FEEDBACK_CALLBACK:
+        drv.position_callback = position_callback
+    else:
+        # use polling
+        asyncio.create_task(request_feedback(drv))
 
     await configure_controller(drv, input_mode)
 

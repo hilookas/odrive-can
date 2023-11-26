@@ -18,7 +18,7 @@ from odrive_can.interface import DbcInterface
 from odrive_can.timer import Timer
 
 # message timeout in seconds
-MESSAGE_TIMEOUT = 0.2  # message expiration time & can timeout
+MESSAGE_TIMEOUT = 1.0  # message expiration time & can timeout
 CUSTOM_TIMEOUTS = {"Heartbeat": 0.5}
 
 

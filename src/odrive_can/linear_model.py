@@ -8,6 +8,7 @@
 
 from typing import Optional
 import math
+import time
 
 
 def sign(x):
@@ -20,7 +21,7 @@ def sign(x):
 class LinearModel:
     """Simple linear model for generating setpoints."""
 
-    __slots__ = ("val", "roc", "setpoint", "min_val", "max_val")
+    __slots__ = ("val", "roc", "setpoint", "min_val", "max_val", "_last_update")
 
     def __init__(
         self,
@@ -48,9 +49,14 @@ class LinearModel:
 
         self.min_val = min_val
         self.max_val = max_val
+        self._last_update = time.time()
 
-    def step(self, dt: float) -> None:
-        """perform timestep"""
+    def step(self, dt: Optional[float] = None) -> float:
+        """perform timestep, return actual dt"""
+
+        if dt is None:
+            dt = time.time() - self._last_update
+            self._last_update = time.time()
 
         if dt < 0:
             raise ValueError(f"dt must be positive, got {dt=} ")
@@ -68,6 +74,8 @@ class LinearModel:
 
         if self.min_val is not None:
             self.val = max(self.val, self.min_val)
+
+        return dt
 
     def __repr__(self) -> str:
         return f"LinearModel(val={self.val}, setpoint={self.setpoint}, roc={self.roc})"

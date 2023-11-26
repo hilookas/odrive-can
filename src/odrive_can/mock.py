@@ -2,41 +2,106 @@
 """
  mock ODrive CAN interface
 
+ This is just a rough mock, not a complete simulation. This model uses
+ infinite acceleration for example
+
  Copyright (c) 2023 ROX Automation - Jev Kuznetsov
 """
 
 import asyncio
-import time
 import logging
+import math
 from typing import Optional
 
 import can
 import coloredlogs  # type: ignore
 
-from odrive_can import LOG_FORMAT, TIME_FORMAT, get_dbc, get_axis_id
+from odrive_can import LOG_FORMAT, TIME_FORMAT, get_axis_id, get_dbc
 from odrive_can.linear_model import LinearModel
 
 # pylint: disable=abstract-class-instantiated, unnecessary-lambda, broad-except
 
 log = logging.getLogger("odrive.mock")
+# set can logger to INFO
+logger_can = logging.getLogger("can").setLevel(logging.INFO)  # type: ignore
 
 
 class OdriveMock:
     """mock physical ODrive device, excluding CAN interface"""
 
     def __init__(self):
-        self.model = LinearModel(roc=10.0)
+        self.model = LinearModel(roc=40.0)
 
         self.axis_state = "IDLE"
         self.input_mode = "INACTIVE"
-        self.controller_mode = "VELOCITY_CONTROL"
+        self.control_mode = "VELOCITY_CONTROL"
 
-    async def set_axis_state(self, state: str):
+        self._accum_pos = 0.0  # accumulated position, when in velocity mode
+        self._accum_pos_prev = 0.0  # previous accumulated position
+
+        # velocity estimate when in position mode
+        self._velocity_estimate = 0.0
+
+    async def set_axis_state(self, data: dict):
         """set axis state"""
+        state = data["Axis_Requested_State"]
         log.info(f"Setting axis state to {state}")
         await asyncio.sleep(0.5)
         self.axis_state = state
         log.info(f"Axis state is now {self.axis_state}")
+
+    def set_controller_mode(self, data: dict):
+        """set controller mode"""
+        log.info(f"Setting controller mode to {data}")
+        self.control_mode = data["Control_Mode"]
+        self.input_mode = data["Input_Mode"]
+
+    def set_input_pos(self, pos: float):
+        """position setpoint"""
+        if self.control_mode != "POSITION_CONTROL":
+            log.warning("Ignoring setpoint. Not in position control mode")
+            return
+        log.debug(f"Setting input pos to {pos}")
+        self.model.setpoint = pos
+
+    def set_input_vel(self, vel: float):
+        """velocity setpoint"""
+        if self.control_mode != "VELOCITY_CONTROL":
+            log.warning("Ignoring setpoint. Not in velocity control mode")
+            return
+        log.debug(f"Setting input vel to {vel}")
+        self.model.setpoint = vel
+
+    @property
+    def position(self) -> float:
+        """position"""
+        if self.control_mode == "POSITION_CONTROL":
+            return self.model.val
+        elif self.control_mode == "VELOCITY_CONTROL":
+            return self._accum_pos
+        else:
+            return 0.0
+
+    @property
+    def velocity(self) -> float:
+        """velocity"""
+        if self.control_mode == "POSITION_CONTROL":
+            return self._velocity_estimate
+        elif self.control_mode == "VELOCITY_CONTROL":
+            return self.model.val
+        else:
+            return 0.0
+
+    def update(self):
+        """update model"""
+        dt = self.model.step()
+        if self.control_mode == "VELOCITY_CONTROL":
+            self._accum_pos += self.model.val * dt
+        elif self.control_mode == "POSITION_CONTROL":
+            self._accum_pos = self.model.val
+
+        self._velocity_estimate = (self._accum_pos - self._accum_pos_prev) / dt
+        self._accum_pos_prev = self._accum_pos
 
 
 class ODriveCANMock:
@@ -63,7 +128,6 @@ class ODriveCANMock:
         while True:
             try:
                 msg = await self.can_reader.get_message()
-                log.debug(f"Received: {msg}")
 
                 if get_axis_id(msg) != self.axis_id:
                     # Ignore messages that aren't for this axis
@@ -73,7 +137,7 @@ class ODriveCANMock:
 
                 if msg.is_remote_frame:
                     # RTR messages are requests for data, they don't have a data payload
-                    log.info(f"Get: {db_msg.name}")
+                    log.debug(f"Get: {db_msg.name}")
                     # echo RTR messages back with data
                     self.send_message(db_msg.name)
                     continue
@@ -82,17 +146,26 @@ class ODriveCANMock:
                 data = db_msg.decode(msg.data)
                 cmd = db_msg.name.split("_", 1)[1]  # remove "AxisX_" prefix
 
-                log.info(f"Set: {cmd}: {data}")
-
-                # Execute commands
-                if cmd == "Set_Axis_State":
-                    await self.odrive.set_axis_state(data["Axis_Requested_State"])
+                await self.execute_cmd(cmd, data)
 
             except KeyError:
                 # If the message ID is not in the DBC file, print the raw message
                 log.warning(f"Could not decode: {msg}")
             except Exception as e:
                 log.error(f"Error: {e}")
+
+    async def execute_cmd(self, cmd: str, data: dict):
+        """execute command"""
+        log.debug(f"Set: {cmd}: {data}")
+
+        if cmd == "Set_Axis_State":
+            await self.odrive.set_axis_state(data)
+        elif cmd == "Set_Controller_Mode":
+            self.odrive.set_controller_mode(data)
+        elif cmd == "Set_Input_Pos":
+            self.odrive.set_input_pos(data["Input_Pos"])
+        elif cmd == "Set_Input_Vel":
+            self.odrive.set_input_vel(data["Input_Vel"])
 
     def send_message(
         self, msg_name: str, msg_dict: Optional[dict] = None, rtr: bool = False
@@ -151,16 +224,21 @@ class ODriveCANMock:
     async def encoder_loop(self, delay: float = 0.1):
         """send encoder message"""
         log.info("Starting encoder loop")
-        position = 0.0
+
         msg = self.dbc.get_message_by_name(f"Axis{self.axis_id}_Get_Encoder_Estimates")
 
         while True:
-            data = msg.encode({"Pos_Estimate": position, "Vel_Estimate": 0.1})
+            self.odrive.update()
+            data = msg.encode(
+                {
+                    "Pos_Estimate": self.odrive.position,
+                    "Vel_Estimate": self.odrive.velocity,
+                }
+            )
             message = can.Message(
                 arbitration_id=msg.frame_id, data=data, is_extended_id=False
             )
             self.bus.send(message)
-            position += 0.01  # Increment position to simulate movement
 
             await asyncio.sleep(delay)
 
