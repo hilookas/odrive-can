@@ -19,9 +19,28 @@ drv.clear_errors()
 check_error(drv)
 
 ax = drv.axis0
+
+# enable endstop
+ax.min_endstop.config.enabled = True
+ax.min_endstop.config.is_active_high = True
+ax.min_endstop.config.offset = 25.0
+
 ax.requested_state = enums.AxisState.HOMING
 sleep(1)
 print("Homing...")
 while ax.current_state != enums.AxisState.IDLE:
     sleep(1)
     print(".", end="", flush=True)
+
+try:
+    check_error(drv)
+except Exception as e:
+    print(e)
+    print("Homing failed")
+    exit(1)
+
+print("Homing OK")
+
+# get current position
+pos = ax.encoder.pos_estimate
+print(f"Current position: {pos}")
