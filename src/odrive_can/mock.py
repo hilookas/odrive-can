@@ -20,7 +20,6 @@ from odrive_can.linear_model import LinearModel
 
 # pylint: disable=abstract-class-instantiated, unnecessary-lambda, broad-except
 
-log = logging.getLogger("odrive.mock")
 # set can logger to INFO
 logger_can = logging.getLogger("can").setLevel(logging.INFO)  # type: ignore
 
@@ -28,7 +27,9 @@ logger_can = logging.getLogger("can").setLevel(logging.INFO)  # type: ignore
 class OdriveMock:
     """mock physical ODrive device, excluding CAN interface"""
 
-    def __init__(self):
+    def __init__(self, logger: Optional[logging.Logger] = None):
+        """optinally provide logger"""
+        self.log = logger or logging.getLogger("odrive_mock")
         self.model = LinearModel(roc=40.0)
 
         self.axis_state = "IDLE"
@@ -44,31 +45,31 @@ class OdriveMock:
     async def set_axis_state(self, data: dict):
         """set axis state"""
         state = data["Axis_Requested_State"]
-        log.info(f"Setting axis state to {state}")
+        self.log.info(f"Setting axis state to {state}")
         await asyncio.sleep(0.5)
         self.axis_state = state
-        log.info(f"Axis state is now {self.axis_state}")
+        self.log.info(f"Axis state is now {self.axis_state}")
 
     def set_controller_mode(self, data: dict):
         """set controller mode"""
-        log.info(f"Setting controller mode to {data}")
+        self.log.info(f"Setting controller mode to {data}")
         self.control_mode = data["Control_Mode"]
         self.input_mode = data["Input_Mode"]
 
     def set_input_pos(self, pos: float):
         """position setpoint"""
         if self.control_mode != "POSITION_CONTROL":
-            log.warning("Ignoring setpoint. Not in position control mode")
+            self.log.warning("Ignoring setpoint. Not in position control mode")
             return
-        log.debug(f"Setting input pos to {pos}")
+        self.log.debug(f"Setting input pos to {pos}")
         self.model.setpoint = pos
 
     def set_input_vel(self, vel: float):
         """velocity setpoint"""
         if self.control_mode != "VELOCITY_CONTROL":
-            log.warning("Ignoring setpoint. Not in velocity control mode")
+            self.log.warning("Ignoring setpoint. Not in velocity control mode")
             return
-        log.debug(f"Setting input vel to {vel}")
+        self.log.debug(f"Setting input vel to {vel}")
         self.model.setpoint = vel
 
     @property
@@ -109,7 +110,9 @@ class ODriveCANMock:
     def __init__(
         self, axis_id: int = 0, channel: str = "vcan0", bustype: str = "socketcan"
     ):
-        log.info(f"Starting mock {axis_id=} , {channel=} , {bustype=}")
+        self.log = logging.getLogger(f"odrive.mock.{axis_id}")
+
+        self.log.info(f"Starting mock {axis_id=} , {channel=} , {bustype=}")
         self.dbc = get_dbc()
         self.axis_id = axis_id
 
@@ -117,12 +120,12 @@ class ODriveCANMock:
         self.can_reader = can.AsyncBufferedReader()
         self.notifier = can.Notifier(self.bus, [self.can_reader])
 
-        self.odrive = OdriveMock()
+        self.odrive = OdriveMock(logger=self.log)
 
     async def message_handler(self):
         """handle received message"""
 
-        log.info("Starting message handler")
+        self.log.info("Starting message handler")
 
         while True:
             try:
@@ -136,7 +139,7 @@ class ODriveCANMock:
 
                 if msg.is_remote_frame:
                     # RTR messages are requests for data, they don't have a data payload
-                    log.debug(f"Get: {db_msg.name}")
+                    self.log.debug(f"Get: {db_msg.name}")
                     # echo RTR messages back with data
                     self.send_message(db_msg.name)
                     continue
@@ -149,13 +152,13 @@ class ODriveCANMock:
 
             except KeyError:
                 # If the message ID is not in the DBC file, print the raw message
-                log.warning(f"Could not decode: {msg}")
+                self.log.warning(f"Could not decode: {msg}")
             except Exception as e:
-                log.error(f"Error: {e}")
+                self.log.error(f"Error: {e}")
 
     async def execute_cmd(self, cmd: str, data: dict):
         """execute command"""
-        log.debug(f"Set: {cmd}: {data}")
+        self.log.debug(f"Set: {cmd}: {data}")
 
         if cmd == "Set_Axis_State":
             await self.odrive.set_axis_state(data)
@@ -194,7 +197,7 @@ class ODriveCANMock:
 
     async def heartbeat_loop(self, delay: float = 0.2):
         """send heartbeat message"""
-        log.info("Starting heartbeat loop")
+        self.log.info("Starting heartbeat loop")
 
         # Fetch the "Axis0_Heartbeat" message from the DBC database
         heartbeat_msg = self.dbc.get_message_by_name(f"Axis{self.axis_id}_Heartbeat")
@@ -222,7 +225,7 @@ class ODriveCANMock:
 
     async def encoder_loop(self, delay: float = 0.1):
         """send encoder message"""
-        log.info("Starting encoder loop")
+        self.log.info("Starting encoder loop")
 
         msg = self.dbc.get_message_by_name(f"Axis{self.axis_id}_Get_Encoder_Estimates")
 

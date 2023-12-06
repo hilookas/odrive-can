@@ -1,18 +1,18 @@
 import asyncio
-from odrive_can import ODriveCAN
+from odrive_can import ODriveCAN, CanMsg
 from odrive_can.tools import UDP_Client
 
-AXIS_ID = 1
-INTERFACE = "slcan0"
+AXIS_ID = 0
+INTERFACE = "vcan0"
 SETPOINT = 50
 
 udp = UDP_Client()  # send data to UDP server for plotting
 
 
-def position_callback(data: dict):
+def feedback_callback_fcn(msg: CanMsg, caller: ODriveCAN):
     """called on position estimate"""
-    print(data)
-    udp.send(data)
+    print(msg)
+    udp.send(msg.data)
 
 
 async def main():
@@ -20,7 +20,7 @@ async def main():
     drv = ODriveCAN(axis_id=AXIS_ID, interface=INTERFACE)
 
     # set up callback (optional)
-    drv.position_callback = position_callback
+    drv.feedback_callback = feedback_callback_fcn
 
     # start
     await drv.start()

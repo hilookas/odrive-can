@@ -81,7 +81,7 @@ async def position_control(drv: ODriveCAN):
 
 async def main():
     drv = ODriveCAN(axis_id=AXIS_ID, interface=INTERFACE)
-    drv.position_callback = position_callback
+    drv.feedback_callback = position_callback
     await drv.start()
 
     # log some messages
