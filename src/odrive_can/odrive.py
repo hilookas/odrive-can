@@ -15,7 +15,7 @@ import can
 
 from odrive_can.interface import DbcInterface
 from odrive_can.timer import Timer
-from odrive_can.utils import extract_ids, get_dbc
+from odrive_can.utils import extract_ids, get_axis_id, get_dbc
 
 
 # message timeout in seconds
@@ -49,6 +49,8 @@ class CanMsg:
         self.name = db_msg.name.split("_", 1)[1]  # remove "AxisX_" prefix
         self.data = db_msg.decode(msg.data)
 
+        self.axis_id = get_axis_id(msg)
+
         timeout = CUSTOM_TIMEOUTS.get(self.name, MESSAGE_TIMEOUT)
 
         self._timer = Timer(timeout=timeout)
@@ -60,6 +62,9 @@ class CanMsg:
     def __str__(self):
         return f"{self.name}: {self.data}"
 
+    def __repr__(self):
+        return str(self)
+
 
 class ODriveCAN(DbcInterface):
     """odrive CAN driver"""
@@ -70,6 +75,7 @@ class ODriveCAN(DbcInterface):
         interface: str = "can0",
         interface_type: str = "socketcan",
     ):
+        super().__init__()
         self._log = logging.getLogger(f"odrive.{axis_id}")
         self._axis_id = axis_id
 
@@ -91,7 +97,7 @@ class ODriveCAN(DbcInterface):
         self._request_id: int = 0  # set to msg.arbitration_id by _send_message
 
         # called on incoming position message
-        self.position_callback: Optional[Callable] = None
+        self.feedback_callback: Optional[Callable[[CanMsg, ODriveCAN], None]] = None
 
         self._running = True  # flag to stop loops
 
@@ -286,8 +292,8 @@ class ODriveCAN(DbcInterface):
 
                 # call position callback
                 if cmd_id == CommandId.ENCODER_ESTIMATE.value:
-                    if self.position_callback is not None:
-                        self.position_callback(can_msg.data)
+                    if self.feedback_callback is not None:
+                        self.feedback_callback(can_msg, self)
 
                 # handle heartbeat
                 if cmd_id == CommandId.HEARTBEAT.value:

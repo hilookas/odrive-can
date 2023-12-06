@@ -136,6 +136,7 @@ def backup(output_file):
 @demo.command()
 @click.option("--axis-id", default=0, help="ODrive axis ID")
 @click.option("--interface", default="slcan0", help="CAN interface")
+@click.option("--amplitude", default=40, help="Amplitude")
 @click.option("--debug", is_flag=True, help="Turn on debugging")
 @click.option(
     "--input-mode",
@@ -144,12 +145,12 @@ def backup(output_file):
     help="Input mode (POS_FILTER or TRAP_TRAJ)",
 )
 @common_cli
-def position(axis_id, interface, debug, input_mode):
+def position(axis_id, interface, input_mode, amplitude, debug):
     """Position control demo"""
     from .examples.position_control import main
 
     try:
-        main(axis_id=axis_id, interface=interface, input_mode=input_mode)
+        main(axis_id, interface, input_mode, amplitude)
     except Exception as e:
         log.error(e)
 
@@ -157,14 +158,15 @@ def position(axis_id, interface, debug, input_mode):
 @demo.command()
 @click.option("--axis-id", default=0, help="ODrive axis ID")
 @click.option("--interface", default="slcan0", help="CAN interface")
+@click.option("--amplitude", default=40, help="Amplitude")
 @click.option("--debug", is_flag=True, help="Turn on debugging")
 @common_cli
-def velocity(axis_id, interface, debug):
+def velocity(axis_id, interface, amplitude, debug):
     """Velocity control demo"""
     from .examples.velocity_control import main
 
     try:
-        main(axis_id=axis_id, interface=interface)
+        main(axis_id, interface, amplitude)
     except Exception as e:
         log.error(e)
 

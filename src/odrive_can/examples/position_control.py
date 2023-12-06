@@ -6,8 +6,9 @@
 """
 
 import asyncio
+import time
 import logging
-from odrive_can.odrive import ODriveCAN
+from odrive_can.odrive import ODriveCAN, CanMsg
 from odrive_can.tools import UDP_Client
 
 SETTLE_TIME = 5.0  # settle time in [s]
@@ -16,33 +17,13 @@ SETTLE_TIME = 5.0  # settle time in [s]
 log = logging.getLogger("pos_ctl")
 udp = UDP_Client()
 
-setpoint: float = 40.0
 
-
-USE_FEEDBACK_CALLBACK = True
-
-
-def position_callback(data):
+def feedback_callback(msg: CanMsg, caller: ODriveCAN):
     """position callback, send data to UDP client"""
-    data["setpoint"] = setpoint
-    udp.send(data)
-
-
-async def request_feedback(drv: ODriveCAN, delay=0.05):
-    """request feedback"""
-    while True:
-        try:
-            data1 = await drv.get_bus_voltage_current()
-            data2 = await drv.get_encoder_estimates()
-            data3 = await drv.get_iq()
-
-            data = {**data1, **data2, **data3, "setpoint": setpoint}
-            udp.send(data)
-        except asyncio.CancelledError:
-            break
-        except TimeoutError:
-            log.warning("TimeoutError")
-        await asyncio.sleep(delay)
+    data = msg.data
+    data["setpoint"] = caller.setpoint
+    data["ts"] = time.time()
+    udp.send({f"axis_{msg.axis_id}": data}, add_timestamp=False)
 
 
 async def configure_controller(
@@ -66,10 +47,10 @@ async def configure_controller(
     drv.check_errors()
 
 
-async def main_loop(drv: ODriveCAN, input_mode: str = "POS_FILTER"):
+async def main_loop(
+    drv: ODriveCAN, input_mode: str = "POS_FILTER", amplitude: float = 40.0
+):
     """position demo"""
-
-    global setpoint  # pylint: disable=global-statement
 
     log.info("-----------Running position control-----------------")
 
@@ -80,17 +61,13 @@ async def main_loop(drv: ODriveCAN, input_mode: str = "POS_FILTER"):
     drv.clear_errors()
     drv.check_errors()
 
-    if USE_FEEDBACK_CALLBACK:
-        drv.position_callback = position_callback
-    else:
-        # use polling
-        asyncio.create_task(request_feedback(drv))
+    drv.feedback_callback = feedback_callback
 
     await configure_controller(drv, input_mode)
 
     # start running
 
-    drv.set_input_pos(setpoint)
+    drv.set_input_pos(amplitude)
     await asyncio.sleep(2)
 
     idx = 0
@@ -98,10 +75,10 @@ async def main_loop(drv: ODriveCAN, input_mode: str = "POS_FILTER"):
         while True:
             drv.check_errors()
 
-            drv.set_input_pos(setpoint)
+            drv.set_input_pos(amplitude)
             idx += 1
             await asyncio.sleep(SETTLE_TIME)
-            setpoint = -setpoint
+            amplitude = -amplitude
 
     except KeyboardInterrupt:
         log.info("Stopping")
@@ -110,12 +87,17 @@ async def main_loop(drv: ODriveCAN, input_mode: str = "POS_FILTER"):
         await asyncio.sleep(0.5)
 
 
-def main(axis_id: int, interface: str, input_mode: str = "POS_FILTER"):
+def main(
+    axis_id: int,
+    interface: str,
+    input_mode: str = "POS_FILTER",
+    amplitude: float = 40.0,
+):
     print("Starting position control demo, press CTRL+C to exit")
     drv = ODriveCAN(axis_id, interface)
 
     try:
-        asyncio.run(main_loop(drv, input_mode))
+        asyncio.run(main_loop(drv, input_mode, amplitude))
     except KeyboardInterrupt:
         log.info("KeyboardInterrupt")
 

@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## v0.7.0
+
+* add amplitude parameter to `demo` code
+* split udp feedback per axis
+* remove polling example
+* add refererence to `ODriveCAN` in `.feedback_callback`
+* rename `.position_callback` to `.feedback_callback`
+
+
 ## v0.6.1
 
 * Beta release

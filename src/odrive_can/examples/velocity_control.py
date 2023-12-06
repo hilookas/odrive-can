@@ -7,23 +7,18 @@
 
 import asyncio
 import logging
+
 from odrive_can.odrive import ODriveCAN
-from odrive_can.tools import UDP_Client
 from odrive_can.setpoints import sawtooth_generator
+from odrive_can.tools import UDP_Client
+
+from .position_control import feedback_callback
 
 SETPOINT_DELAY = 0.1
 
 
 log = logging.getLogger("pos_ctl")
 udp = UDP_Client()
-
-setpoint: float = 40.0  # velocity setpoint in [rev/s]
-
-
-def position_callback(data):
-    """position callback, send data to UDP client"""
-    data["setpoint"] = setpoint
-    udp.send(data)
 
 
 async def configure_controller(drv: ODriveCAN):
@@ -39,14 +34,12 @@ async def configure_controller(drv: ODriveCAN):
     drv.check_errors()
 
 
-async def main_loop(drv: ODriveCAN):
-    """position demo"""
+async def main_loop(drv: ODriveCAN, amplitude: float = 40.0):
+    """velocity control demo"""
 
-    global setpoint  # pylint: disable=global-statement
+    log.info("-----------Running velocity control-----------------")
 
-    log.info("-----------Running position control-----------------")
-
-    drv.position_callback = position_callback
+    drv.feedback_callback = feedback_callback
     await drv.start()
 
     await asyncio.sleep(0.5)
@@ -59,7 +52,8 @@ async def main_loop(drv: ODriveCAN):
     # make setpoint generator
     setpoint_gen = sawtooth_generator(roc=10.0, max_val=40.0)
 
-    drv.set_input_pos(setpoint)
+    drv.set_input_pos(amplitude)
+
     await asyncio.sleep(2)
 
     try:
@@ -77,18 +71,19 @@ async def main_loop(drv: ODriveCAN):
         await asyncio.sleep(0.5)
 
 
-def main(axis_id: int, interface: str):
+def main(axis_id: int, interface: str, amplitude: float = 40.0):
     print("Starting velocity control demo, press CTRL+C to exit")
     drv = ODriveCAN(axis_id, interface)
 
     try:
-        asyncio.run(main_loop(drv))
+        asyncio.run(main_loop(drv, amplitude))
     except KeyboardInterrupt:
         log.info("KeyboardInterrupt")
 
 
 if __name__ == "__main__":
     import coloredlogs  # type: ignore
+
     from odrive_can import LOG_FORMAT, TIME_FORMAT  # pylint: disable=ungrouped-imports
 
     coloredlogs.install(level="INFO", fmt=LOG_FORMAT, datefmt=TIME_FORMAT)

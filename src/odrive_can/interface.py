@@ -11,6 +11,9 @@ from abc import ABC, abstractmethod
 class DbcInterface(ABC):
     """translation of DBC file to python interface"""
 
+    def __init__(self) -> None:
+        self.setpoint: float = 0.0  # keep track of setpoint
+
     @property
     @abstractmethod
     def axis_state(self) -> str:
@@ -91,15 +94,18 @@ class DbcInterface(ABC):
             "Set_Input_Pos",
             {"Input_Pos": input_pos, "Vel_FF": vel_ff, "Torque_FF": torque_ff},
         )
+        self.setpoint = input_pos
 
     def set_input_vel(self, input_vel: float, input_torque_ff: float = 0.0):
         self._send_message(
             "Set_Input_Vel",
             {"Input_Vel": input_vel, "Input_Torque_FF": input_torque_ff},
         )
+        self.setpoint = input_vel
 
     def set_input_torque(self, input_torque: float):
         self._send_message("Set_Input_Torque", {"Input_Torque": input_torque})
+        self.setpoint = input_torque
 
     def set_limits(self, velocity_limit: float, current_limit: float):
         self._send_message(
