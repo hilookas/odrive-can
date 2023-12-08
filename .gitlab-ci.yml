@@ -7,7 +7,7 @@ before_script:
   - export
 
 stages:
-  - docker_images
+  #  - docker_images
   - test_stage
   - docs_stage
   - upload_stage
@@ -63,7 +63,7 @@ build_images:
     # ---- main image
     - docker build -t $CI_REGISTRY_IMAGE  ./docker
     - docker push $CI_REGISTRY_IMAGE
-  #when: manual
+  when: manual
   rules:
     - changes:
         - "docker/**/*"
