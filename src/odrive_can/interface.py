@@ -81,6 +81,12 @@ class DbcInterface(ABC):
         while self.axis_state != axis_requested_state:
             await asyncio.sleep(0.1)
 
+    def set_axis_state_no_wait(self, axis_requested_state: str | int):
+        """request axis state and return immediately"""
+        self._send_message(
+            "Set_Axis_State", {"Axis_Requested_State": axis_requested_state}
+        )
+
     def set_controller_mode(self, control_mode: str | int, input_mode: str | int):
         self._send_message(
             "Set_Controller_Mode",

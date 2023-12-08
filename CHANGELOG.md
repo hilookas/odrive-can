@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## v0.8.0
+
+* add `set_axis_state_no_wait`
+
+
 ## v0.7.0
 
 * add amplitude parameter to `demo` code
