@@ -12,5 +12,6 @@ pre-commit
 pydantic
 pylint
 pytest
+pytest-asyncio
 pytest-mock
 python-can

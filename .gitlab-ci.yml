@@ -4,7 +4,7 @@ before_script:
   - python --version
   - cat /build_date.txt
   - pip install .
-  - export
+  # - export
 
 stages:
   - docker_images
@@ -16,7 +16,7 @@ pytest:
   stage: test_stage
   script:
     - pylint -E src
-    # - mypy src
+    - mypy src
     - pytest -v tests
   artifacts:
     when: on_success
