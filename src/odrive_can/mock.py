@@ -27,10 +27,15 @@ logger_can = logging.getLogger("can").setLevel(logging.INFO)  # type: ignore
 class OdriveMock:
     """mock physical ODrive device, excluding CAN interface"""
 
-    def __init__(self, logger: Optional[logging.Logger] = None):
-        """optinally provide logger"""
+    def __init__(self, roc: float = 10.0, logger: Optional[logging.Logger] = None):
+        """mock ODrive device
+
+        Args:
+            roc (float, optional): rate of change (velocity of poisition). Defaults to 10.0.
+            logger (Optional[logging.Logger], optional): logger object. Defaults to None.
+        """
         self.log = logger or logging.getLogger("odrive_mock")
-        self.model = LinearModel(roc=40.0)
+        self.model = LinearModel(roc=roc)
 
         self.axis_state = "IDLE"
         self.input_mode = "INACTIVE"
