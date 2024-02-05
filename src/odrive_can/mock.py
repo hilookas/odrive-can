@@ -113,15 +113,15 @@ class ODriveCANMock:
     """class to mock ODrive CAN interface"""
 
     def __init__(
-        self, axis_id: int = 0, channel: str = "vcan0", bustype: str = "socketcan"
+        self, axis_id: int = 0, channel: str = "vcan0", interface: str = "socketcan"
     ):
         self.log = logging.getLogger(f"odrive.mock.{axis_id}")
 
-        self.log.info(f"Starting mock {axis_id=} , {channel=} , {bustype=}")
+        self.log.info(f"Starting mock {axis_id=} , {channel=} , {interface=}")
         self.dbc = get_dbc()
         self.axis_id = axis_id
 
-        self.bus = can.interface.Bus(channel=channel, bustype=bustype)
+        self.bus = can.interface.Bus(channel=channel, interface=interface)
         self.can_reader = can.AsyncBufferedReader()
         self.notifier = can.Notifier(self.bus, [self.can_reader])
 

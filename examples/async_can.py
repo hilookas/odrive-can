@@ -9,7 +9,9 @@ import asyncio
 import can
 
 # pylint: disable=abstract-class-instantiated
-BUS = can.interface.Bus(channel="vcan0", bustype="socketcan", receive_own_messages=True)
+BUS = can.interface.Bus(
+    channel="vcan0", interface="socketcan", receive_own_messages=True
+)
 
 
 # Callback function to process received messages

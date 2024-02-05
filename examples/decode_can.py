@@ -31,7 +31,7 @@ def main():
     dbc = odrive_can.get_dbc()
 
     channel = "vcan0"  # Change to your CAN interface
-    bus = can.Bus(channel=channel, bustype="socketcan", receive_own_messages=True)
+    bus = can.Bus(channel=channel, interface="socketcan", receive_own_messages=True)
 
     try:
         receive_and_decode(bus, dbc)

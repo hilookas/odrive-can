@@ -16,7 +16,7 @@ import can
 import odrive_can
 
 # pylint: disable=abstract-class-instantiated
-BUS = can.interface.Bus(channel="vcan0", bustype="socketcan")
+BUS = can.interface.Bus(channel="vcan0", interface="socketcan")
 
 
 async def send_heartbeat(dbc, axis_id):

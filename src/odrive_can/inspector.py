@@ -56,7 +56,7 @@ def receive_and_decode(bus):
 def main(interface: str = "vcan0"):
     # Load the DBC file
 
-    bus = can.Bus(channel=interface, bustype="socketcan", receive_own_messages=True)
+    bus = can.Bus(channel=interface, interface="socketcan", receive_own_messages=True)
 
     try:
         receive_and_decode(bus)

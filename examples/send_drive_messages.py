@@ -11,7 +11,7 @@ from odrive_can import get_dbc, get_axis_id
 
 # pylint: disable=abstract-class-instantiated
 BUS = can.interface.Bus(
-    channel="vcan0", bustype="socketcan", receive_own_messages=False
+    channel="vcan0", interface="socketcan", receive_own_messages=False
 )
 DB = get_dbc()  # Load the DBC file
 
