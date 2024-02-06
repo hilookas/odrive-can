@@ -74,7 +74,7 @@ class ODriveCAN(DbcInterface):
         axis_id: int = 0,
         interface: str = "can0",
         interface_type: str = "socketcan",
-    ):
+    ) -> None:
         super().__init__()
         self._log = logging.getLogger(f"odrive.{axis_id}")
         self._axis_id = axis_id
@@ -87,6 +87,8 @@ class ODriveCAN(DbcInterface):
         # self._notifier = can.Notifier(self._bus, [self._message_handler])
 
         self._recieve_thread: Optional[threading.Thread] = None
+        self._msg_task: Optional[asyncio.Task] = None
+
         self._msg_queue: asyncio.Queue = asyncio.Queue()
 
         self._last_heartbeat: Optional[CanMsg] = None
@@ -101,7 +103,7 @@ class ODriveCAN(DbcInterface):
 
         self._running = True  # flag to stop loops
 
-    def check_alive(self):
+    def check_alive(self) -> None:
         """check if axis is alive, rasie an exception if not"""
         if self._last_heartbeat is None:
             raise HeartbeatError("Error: No heartbeat message received.")
@@ -109,7 +111,7 @@ class ODriveCAN(DbcInterface):
         if self._last_heartbeat.is_expired():
             raise HeartbeatError("Error: Heartbeat message timeout.")
 
-    def check_errors(self):
+    def check_errors(self) -> None:
         """Check if axis is in error and raise an exception if so."""
         if self._last_heartbeat is None:
             raise HeartbeatError("Error: No heartbeat message received.")
@@ -127,11 +129,11 @@ class ODriveCAN(DbcInterface):
             if msg.data[field] != 0:
                 raise DriveError(f"{field} Error Detected")
 
-    def ignore_message(self, cmd_id: CommandId):
+    def ignore_message(self, cmd_id: CommandId) -> None:
         """ignore message by command ID"""
         self._ignored_messages.add(cmd_id.value)
 
-    def allow_message(self, cmd_id: CommandId):
+    def allow_message(self, cmd_id: CommandId) -> None:
         """allow message by command ID"""
         self._ignored_messages.remove(cmd_id.value)
 
@@ -143,7 +145,7 @@ class ODriveCAN(DbcInterface):
 
         return self._last_heartbeat.data["Axis_State"]
 
-    async def start(self):
+    async def start(self) -> None:
         """start driver"""
         self._log.info(
             f"Starting. axis_id={self._axis_id}, bus={self._bus.channel_info}"
@@ -155,7 +157,7 @@ class ODriveCAN(DbcInterface):
         )
         self._recieve_thread.start()
 
-        asyncio.create_task(self._message_handler())
+        self._msg_task = asyncio.create_task(self._message_handler())
 
         # wait for first heartbeat
         self._log.info("waiting for first heartbeat")
@@ -164,13 +166,17 @@ class ODriveCAN(DbcInterface):
 
         self._log.info("started")
 
-    def stop(self):
+    def stop(self) -> None:
         """stop driver"""
         self._log.info("stopping driver")
         self._send_message("Set_Axis_State", {"Axis_Requested_State": "IDLE"})
         self._running = False
 
-        self._recieve_thread.join()
+        if self._msg_task is not None:
+            self._msg_task.cancel()
+
+        if self._recieve_thread is not None:
+            self._recieve_thread.join()
 
     # ------------------- private -------------------
     async def _request(self, msg_name: str, timeout: float = 0.5) -> dict:
@@ -203,7 +209,7 @@ class ODriveCAN(DbcInterface):
 
     def _send_message(
         self, msg_name: str, msg_dict: Optional[dict] = None, rtr: bool = False
-    ):
+    ) -> None:
         """send message by name. If no msg_dict is provided, use zeros
         msg_name is the name of the message without the "AxisX_" prefix
         """
@@ -233,12 +239,12 @@ class ODriveCAN(DbcInterface):
         except can.CanError as error:
             self._log.error(error)
 
-    def __del__(self):
+    def __del__(self) -> None:
         """destructor"""
         if hasattr(self, "_bus"):
             self._bus.shutdown()
 
-    def _can_reader_thread(self, loop):
+    def _can_reader_thread(self, loop) -> None:
         """receive can messages, filter and put them into the queue"""
         while self._running:
             try:
@@ -275,7 +281,7 @@ class ODriveCAN(DbcInterface):
 
         self._log.debug("CAN reader thread stopped")
 
-    async def _message_handler(self):
+    async def _message_handler(self) -> None:
         """handle received message"""
 
         while self._running:

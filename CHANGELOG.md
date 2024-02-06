@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## v0.9.2
+
+* cancel task on stop
+* add `roc` parameter to `mock`
+
 ## v0.8.0
 
 * add `set_axis_state_no_wait`
