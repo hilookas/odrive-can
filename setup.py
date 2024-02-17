@@ -35,7 +35,7 @@ test_requirements = [
 setup(
     author="Jev Kuznetsov",
     author_email="jev.kuznetsov@gmail.com",
-    python_requires=">=3.8",
+    python_requires=">=3.11",
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
