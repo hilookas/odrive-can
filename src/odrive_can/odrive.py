@@ -92,6 +92,7 @@ class ODriveCAN(DbcInterface):
         self._msg_queue: asyncio.Queue = asyncio.Queue()
 
         self._last_heartbeat: Optional[CanMsg] = None
+        self._heartbeat_event = asyncio.Event()
 
         self._ignored_messages: set = set()  # message ids to ignore
 
@@ -136,6 +137,11 @@ class ODriveCAN(DbcInterface):
     def allow_message(self, cmd_id: CommandId) -> None:
         """allow message by command ID"""
         self._ignored_messages.remove(cmd_id.value)
+
+    async def wait_for_heartbeat(self) -> None:
+        """wait for heartbeat message"""
+        self._heartbeat_event.clear()
+        await self._heartbeat_event.wait()
 
     @property
     def axis_state(self) -> str:
@@ -305,6 +311,7 @@ class ODriveCAN(DbcInterface):
                 if cmd_id == CommandId.HEARTBEAT.value:
                     self._log.debug(f"heartbeat: {can_msg.data}")
                     self._last_heartbeat = can_msg
+                    self._heartbeat_event.set()
 
             except KeyError:
                 # If the message ID is not in the DBC file, print the raw message
