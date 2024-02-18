@@ -12,7 +12,7 @@ from utils import check_error
 from odrive_can.tools import UDP_Client
 
 DURATION = 5
-SETPOINT = 60
+SETPOINT = 20
 
 drv = odrive.find_any()
 ax = drv.axis0
@@ -27,7 +27,7 @@ ax.controller.config.control_mode = enums.ControlMode.POSITION_CONTROL
 ax.controller.config.input_mode = enums.InputMode.TRAP_TRAJ
 ax.requested_state = enums.AxisState.CLOSED_LOOP_CONTROL
 ax.controller.config.input_filter_bandwidth = 4.0
-ax.motor.config.current_lim = 5.0
+ax.motor.config.current_lim = 15.0
 ax.controller.config.vel_limit = 50.0
 
 
