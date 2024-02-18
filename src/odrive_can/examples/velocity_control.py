@@ -11,8 +11,11 @@ import logging
 from odrive_can.odrive import ODriveCAN
 from odrive_can.setpoints import sawtooth_generator
 from odrive_can.tools import UDP_Client
+from odrive_can.utils import run_main_async
 
-from .position_control import feedback_callback
+from odrive_can.examples.position_control import feedback_callback
+
+VERSION = "2024.02.17"
 
 SETPOINT_DELAY = 0.1
 
@@ -31,20 +34,25 @@ async def configure_controller(drv: ODriveCAN):
 
     # set position control mode
     await drv.set_axis_state("CLOSED_LOOP_CONTROL")
+    await drv.wait_for_heartbeat()
     drv.check_errors()
 
 
-async def main_loop(drv: ODriveCAN, amplitude: float = 40.0):
+async def main(axis_id: int, interface: str, amplitude: float = 40.0):
     """velocity control demo"""
 
-    log.info("-----------Running velocity control-----------------")
+    log.info(f"Running velocity control demo on axis {axis_id} using {interface}")
+
+    drv = ODriveCAN(axis_id, interface)
 
     drv.feedback_callback = feedback_callback
     await drv.start()
 
     await asyncio.sleep(0.5)
     drv.check_alive()
+    log.info("Clearing errors")
     drv.clear_errors()
+    await drv.wait_for_heartbeat()
     drv.check_errors()
 
     await configure_controller(drv)
@@ -52,10 +60,7 @@ async def main_loop(drv: ODriveCAN, amplitude: float = 40.0):
     # make setpoint generator
     setpoint_gen = sawtooth_generator(roc=10.0, max_val=40.0)
 
-    drv.set_input_pos(amplitude)
-
-    await asyncio.sleep(2)
-
+    log.info("Running velocity control")
     try:
         while True:
             drv.check_errors()
@@ -64,28 +69,10 @@ async def main_loop(drv: ODriveCAN, amplitude: float = 40.0):
             drv.set_input_vel(setpoint)
             await asyncio.sleep(SETPOINT_DELAY)
 
-    except KeyboardInterrupt:
-        log.info("Stopping")
     finally:
         drv.stop()
         await asyncio.sleep(0.5)
 
 
-def main(axis_id: int, interface: str, amplitude: float = 40.0):
-    print("Starting velocity control demo, press CTRL+C to exit")
-    drv = ODriveCAN(axis_id, interface)
-
-    try:
-        asyncio.run(main_loop(drv, amplitude))
-    except KeyboardInterrupt:
-        log.info("KeyboardInterrupt")
-
-
 if __name__ == "__main__":
-    import coloredlogs  # type: ignore
-
-    from odrive_can import LOG_FORMAT, TIME_FORMAT  # pylint: disable=ungrouped-imports
-
-    coloredlogs.install(level="INFO", fmt=LOG_FORMAT, datefmt=TIME_FORMAT)
-
-    main(1, "slcan0")
+    run_main_async(main(1, "can0"))

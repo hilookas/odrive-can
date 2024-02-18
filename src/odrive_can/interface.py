@@ -7,6 +7,8 @@ import asyncio
 from typing import Optional
 from abc import ABC, abstractmethod
 
+from .utils import async_timeout
+
 
 class DbcInterface(ABC):
     """translation of DBC file to python interface"""
@@ -73,6 +75,7 @@ class DbcInterface(ABC):
     def set_axis_node_id(self, axis_node_id: int):
         self._send_message("Set_Axis_Node_ID", {"Axis_Node_ID": axis_node_id})
 
+    @async_timeout()
     async def set_axis_state(self, axis_requested_state: str | int):
         """request axis state and wait for it to be reached"""
         self._send_message(

@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+* add `wait_for_heartbeat()` - used used to get status before checking for errors.
+
+
+
 ## v0.9.2
 
 * cancel task on stop
