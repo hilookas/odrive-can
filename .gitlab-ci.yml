@@ -15,7 +15,7 @@ stages:
 pytest:
   stage: test_stage
   script:
-    - pylint -E src
+    - ruff check src
     - mypy src
     - pytest -v tests
   artifacts:

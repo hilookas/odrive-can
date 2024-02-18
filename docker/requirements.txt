@@ -13,5 +13,7 @@ pydantic
 pylint
 pytest
 pytest-asyncio
+pytest-coverage
 pytest-mock
 python-can
+ruff
