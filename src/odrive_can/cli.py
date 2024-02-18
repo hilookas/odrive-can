@@ -172,5 +172,21 @@ def velocity(axis_id, interface, amplitude, debug):
         log.error(e)
 
 
+@demo.command()
+@click.option("--axis-id", default=1, help="ODrive axis ID")
+@click.option("--interface", default="can0", help="CAN interface")
+@click.option("--amplitude", default=40, help="Amplitude")
+@click.option("--debug", is_flag=True, help="Turn on debugging")
+@common_cli
+def watchdog(axis_id, interface, amplitude, debug):
+    """Demonstrate the watchdog feature"""
+    from .examples.watchdog import main
+
+    try:
+        run_main_async(main(axis_id, interface, amplitude))
+    except Exception as e:
+        log.error(e)
+
+
 if __name__ == "__main__":
     cli()  # pragma: no cover
