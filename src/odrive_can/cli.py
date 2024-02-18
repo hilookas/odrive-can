@@ -14,6 +14,7 @@ import click
 import coloredlogs  # type: ignore
 
 from odrive_can import LOG_FORMAT, TIME_FORMAT
+from odrive_can.utils import run_main_async
 
 log = logging.getLogger()
 coloredlogs.install(level="INFO", fmt=LOG_FORMAT, datefmt=TIME_FORMAT)
@@ -156,8 +157,8 @@ def position(axis_id, interface, input_mode, amplitude, debug):
 
 
 @demo.command()
-@click.option("--axis-id", default=0, help="ODrive axis ID")
-@click.option("--interface", default="slcan0", help="CAN interface")
+@click.option("--axis-id", default=1, help="ODrive axis ID")
+@click.option("--interface", default="can0", help="CAN interface")
 @click.option("--amplitude", default=40, help="Amplitude")
 @click.option("--debug", is_flag=True, help="Turn on debugging")
 @common_cli
@@ -166,7 +167,7 @@ def velocity(axis_id, interface, amplitude, debug):
     from .examples.velocity_control import main
 
     try:
-        main(axis_id, interface, amplitude)
+        run_main_async(main(axis_id, interface, amplitude))
     except Exception as e:
         log.error(e)
 

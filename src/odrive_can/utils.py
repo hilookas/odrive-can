@@ -4,10 +4,27 @@
 
  Copyright (c) 2023 ROX Automation - Jev Kuznetsov
 """
+import asyncio
+import logging
+import os
 from pathlib import Path
+from typing import Any, Callable
 
 import can
 import cantools
+import coloredlogs  # type: ignore
+
+import asyncio
+import logging
+import os
+from typing import Any, Coroutine
+import can
+import cantools
+import coloredlogs
+
+
+LOG_FORMAT = "%(asctime)s [%(name)s] %(filename)s:%(lineno)d - %(message)s"
+TIME_FORMAT = "%H:%M:%S.%f"
 
 
 def get_axis_id(msg: can.Message) -> int:
@@ -30,3 +47,15 @@ def get_dbc(name: str = "odrive-cansimple-0.5.6"):
     dbc_path = Path(__file__).parent / f"dbc/{name}.dbc"
 
     return cantools.database.load_file(dbc_path.as_posix())
+
+
+def run_main_async(coro: Coroutine[Any, Any, None]) -> None:
+    """convenience function to avoid code duplication"""
+    loglevel = os.environ.get("LOGLEVEL", "INFO").upper()
+    coloredlogs.install(level=loglevel, fmt=LOG_FORMAT, datefmt=TIME_FORMAT)
+    logging.info(f"Log level set to {loglevel}")
+
+    try:
+        asyncio.run(coro)
+    except KeyboardInterrupt:
+        pass
