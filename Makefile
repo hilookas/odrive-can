@@ -18,14 +18,12 @@ clean:
 
 
 lint:
-	pylint -E src
+	ruff check src
 	mypy src
 
 
 test:
 	coverage run -m pytest tests && coverage report -m
-
-
 
 
 public:
