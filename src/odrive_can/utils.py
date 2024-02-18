@@ -7,21 +7,13 @@
 import asyncio
 import logging
 import os
+from functools import wraps
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Coroutine
 
 import can
 import cantools
 import coloredlogs  # type: ignore
-
-import asyncio
-import logging
-import os
-from typing import Any, Coroutine
-import can
-import cantools
-import coloredlogs
-
 
 LOG_FORMAT = "%(asctime)s [%(name)s] %(filename)s:%(lineno)d - %(message)s"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -59,3 +51,21 @@ def run_main_async(coro: Coroutine[Any, Any, None]) -> None:
         asyncio.run(coro)
     except KeyboardInterrupt:
         pass
+    except Exception as e:
+        logging.error(e)
+
+
+def async_timeout(timeout: float = 1.0):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            try:
+                return await asyncio.wait_for(func(*args, **kwargs), timeout)
+            except asyncio.TimeoutError:
+                func_name = func.__name__
+                # Include the function name in the error message
+                raise TimeoutError(f"{func_name} timed out after {timeout} seconds")
+
+        return wrapper
+
+    return decorator

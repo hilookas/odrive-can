@@ -15,7 +15,7 @@ import can
 
 from odrive_can.interface import DbcInterface
 from odrive_can.timer import Timer
-from odrive_can.utils import extract_ids, get_axis_id, get_dbc
+from odrive_can.utils import extract_ids, get_axis_id, get_dbc, async_timeout
 
 
 # message timeout in seconds
@@ -138,9 +138,11 @@ class ODriveCAN(DbcInterface):
         """allow message by command ID"""
         self._ignored_messages.remove(cmd_id.value)
 
+    @async_timeout()
     async def wait_for_heartbeat(self) -> None:
         """wait for heartbeat message"""
         self._heartbeat_event.clear()
+        self._log.debug("waiting for heartbeat")
         await self._heartbeat_event.wait()
 
     @property
