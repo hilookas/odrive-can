@@ -5,8 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
-* add `wait_for_heartbeat()` - used used to get status before checking for errors.
+## v0.10.0
 
+* add `watchdog` demo.
+* change linting to `ruff`
+* add timeout for `set_axis_state` and `wait_for_heartbeat`
+* add `wait_for_heartbeat()` - used used to get status before checking for errors.
 
 
 ## v0.9.2
